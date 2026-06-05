@@ -32,7 +32,7 @@ reach and we document it as such, rather than pretend to cover it.
 > MCPG005 partially overlaps MCPG002 (an `ESC` is already a control char), but a dedicated rule gives
 > a precise message + its own severity. Decide whether to fold it into MCPG002 or ship separately.
 
-### P2 — heuristic, tune against the stash-mcp dogfood corpus
+### P2 — heuristic, tune against a real-world corpus
 
 | ID | Rule | Detection pattern | False-positive risk |
 |----|------|-------------------|---------------------|
