@@ -50,14 +50,11 @@ and grows as the corpus does — a noisy security analyzer just gets disabled.
 
 ## Install
 
-> **Status:** Phase 0 scaffolding. The `McpGuard.Analyzers` package id is reserved but not yet
-> published to NuGet. Until then, consume it via a `ProjectReference` or a local package feed.
-
-Once published:
+Add the analyzer as a build-time-only dependency:
 
 ```xml
 <ItemGroup>
-  <PackageReference Include="McpGuard.Analyzers" Version="x.y.z" PrivateAssets="all" />
+  <PackageReference Include="McpGuard.Analyzers" Version="0.1.0" PrivateAssets="all" />
 </ItemGroup>
 ```
 

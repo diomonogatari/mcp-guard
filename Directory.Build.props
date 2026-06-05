@@ -15,6 +15,8 @@
 
   <!-- Shared NuGet metadata. Per-package id/description/tags live in each packable csproj. -->
   <PropertyGroup>
+    <!-- Default version for local packs; the release workflow overrides it from the git tag. -->
+    <Version>0.1.0</Version>
     <Authors>Diogo Carvalho</Authors>
     <Company>Diogo Carvalho</Company>
     <Copyright>Copyright (c) 2026 Diogo Carvalho</Copyright>
