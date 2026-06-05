@@ -29,8 +29,8 @@ reach and we document it as such, rather than pretend to cover it.
 | MCPG004 | **Exfiltration directive** — description tells the model to send data somewhere | Transmit verb (`send`, `post`, `upload`, `exfiltrate`, `email`, `transmit`) **+** an external destination cue (URL, IP, domain, "external", "server") | Medium — require an explicit external destination to avoid "uploads to the configured endpoint" | No |
 | MCPG005 | **ANSI / terminal escape sequences** in a description | `ESC` (U+001B) followed by a CSI/OSC sequence (`\x1B[`, `\x1B]`) | Very low | **Yes** — strip the sequence |
 
-> MCPG005 partially overlaps MCPG002 (an `ESC` is already a control char), but a dedicated rule gives
-> a precise message + its own severity. Decide whether to fold it into MCPG002 or ship separately.
+> MCPG005 ships as a dedicated rule; `ESC` (U+001B) is carved out of MCPG002 so the two never
+> double-report the same byte.
 
 ### P2 — heuristic, tune against a real-world corpus
 

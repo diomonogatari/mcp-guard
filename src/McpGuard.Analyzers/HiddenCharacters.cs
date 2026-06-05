@@ -3,7 +3,7 @@ using System.Globalization;
 namespace McpGuard.Analyzers;
 
 /// <summary>
-/// Detects hidden or non-printable characters in description text — zero-width spaces, bidirectional
+/// Detects hidden or non-printable characters in description text - zero-width spaces, bidirectional
 /// control codes, byte-order marks, Unicode "tag" characters, and stray control codes. None of these
 /// belong in a tool description; all are known carriers for instructions a human reviewer cannot see.
 /// </summary>
@@ -12,7 +12,7 @@ internal static class HiddenCharacters
     /// <summary>
     /// Returns the first hidden / non-printable code point in <paramref name="text"/>, or
     /// <see langword="false"/> if the text is clean. Surrogate pairs are decoded so tag characters
-    /// (U+E0000–U+E007F) are caught.
+    /// (U+E0000-U+E007F) are caught. ESC (U+001B) is intentionally left to the ANSI-escape rule.
     /// </summary>
     public static bool TryFind(string text, out int codePoint)
     {
@@ -48,16 +48,17 @@ internal static class HiddenCharacters
     private static bool IsHidden(int codePoint, UnicodeCategory category)
     {
         // Format characters: zero-width spaces/joiners, bidi overrides/isolates, BOM, soft hyphen,
-        // word joiner, and the Unicode tag block (U+E0000–U+E007F).
+        // word joiner, and the Unicode tag block (U+E0000-U+E007F).
         if (category == UnicodeCategory.Format)
         {
             return true;
         }
 
-        // Control characters, except the ordinary whitespace that legitimately appears in prose.
+        // Control characters, except ordinary whitespace and ESC (U+001B) - the latter is owned by
+        // the ANSI-escape rule (MCPG005) so the two rules never double-report the same byte.
         if (category == UnicodeCategory.Control)
         {
-            return codePoint != '\t' && codePoint != '\n' && codePoint != '\r';
+            return codePoint != '\t' && codePoint != '\n' && codePoint != '\r' && codePoint != 0x1B;
         }
 
         return false;

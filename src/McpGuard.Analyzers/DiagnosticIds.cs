@@ -20,4 +20,7 @@ internal static class DiagnosticIds
 
     /// <summary>Data-exfiltration directive (transmit sensitive data to an external destination) in a description.</summary>
     public const string ExfiltrationInDescription = "MCPG004";
+
+    /// <summary>ANSI / terminal escape sequence (ESC, U+001B) inside an MCP tool description.</summary>
+    public const string AnsiEscapeInDescription = "MCPG005";
 }
