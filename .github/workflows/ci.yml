@@ -1,0 +1,76 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build & Test
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: |
+            8.0.x
+            10.0.x
+
+      - name: Cache NuGet packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: ${{ runner.os }}-nuget-${{ hashFiles('**/Directory.Packages.props', '**/*.csproj') }}
+          restore-keys: ${{ runner.os }}-nuget-
+
+      - name: Restore
+        run: dotnet restore McpGuard.slnx
+
+      - name: Verify formatting
+        run: bash scripts/verify-format.sh --verify
+
+      - name: Build
+        run: dotnet build McpGuard.slnx --no-restore -c Release
+
+      - name: Test
+        run: >
+          dotnet test McpGuard.slnx --no-build -c Release --verbosity normal
+          --collect:"XPlat Code Coverage"
+          --results-directory ./coverage
+
+      # Proof the analyzer is wired end-to-end: a fresh build of the poisoned sample must emit MCPG001.
+      - name: Verify analyzer fires on the poisoned sample
+        run: |
+          dotnet build samples/PoisonedServer/PoisonedServer.csproj -c Release --no-incremental \
+            -p:TreatWarningsAsErrors=false 2>&1 | tee build-sample.log
+          if ! grep -q "warning MCPG001" build-sample.log; then
+            echo "::error::Expected MCPG001 to fire on the poisoned sample, but it did not."
+            exit 1
+          fi
+          echo "MCPG001 fired on the poisoned sample as expected."
+
+      - name: Pack analyzer for local feed
+        run: >
+          dotnet pack src/McpGuard.Analyzers/McpGuard.Analyzers.csproj
+          -c Release --no-build -o ./artifacts/local-feed
+          -p:PackageVersion=0.1.0-ci
+
+      - name: Upload coverage
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        uses: codecov/codecov-action@v4
+        with:
+          directory: ./coverage
+          fail_ci_if_error: false

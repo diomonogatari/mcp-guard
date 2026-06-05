@@ -1,0 +1,25 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <!-- Multi-targets both supported runtimes so the analyzer is exercised on net8.0 and net10.0. -->
+    <TargetFrameworks>net8.0;net10.0</TargetFrameworks>
+    <IsPackable>false</IsPackable>
+
+    <!-- Poisoned ON PURPOSE: mcp-guard SHOULD light up here. Its findings must not fail this build,
+         so warnings stay warnings; CI asserts MCPG001 actually fired (.github/workflows/ci.yml). -->
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- The official C# MCP SDK — referenced for the [McpServerTool]/[McpServerToolType] attributes. -->
+    <PackageReference Include="ModelContextProtocol" />
+  </ItemGroup>
+
+  <!-- Run mcp-guard from source against this project so the squiggles are real, not simulated. -->
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\McpGuard.Analyzers\McpGuard.Analyzers.csproj"
+                      OutputItemType="Analyzer"
+                      ReferenceOutputAssembly="false" />
+  </ItemGroup>
+
+</Project>

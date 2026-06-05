@@ -1,0 +1,53 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <!-- netstandard2.0 so the analyzer loads in every IDE and build host (incl. .NET 8 and .NET 10). -->
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <RootNamespace>McpGuard.Analyzers</RootNamespace>
+    <AssemblyName>McpGuard.Analyzers</AssemblyName>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+
+    <!-- Analyzer-authoring opt-ins. -->
+    <EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
+    <IsRoslynComponent>true</IsRoslynComponent>
+
+    <!-- Package as a Roslyn analyzer: the DLL ships under analyzers/dotnet/cs, not lib/. -->
+    <IsPackable>true</IsPackable>
+    <IncludeBuildOutput>false</IncludeBuildOutput>
+    <DevelopmentDependency>true</DevelopmentDependency>
+    <SuppressDependenciesWhenPacking>true</SuppressDependenciesWhenPacking>
+    <IncludeSymbols>false</IncludeSymbols>
+
+    <PackageId>McpGuard.Analyzers</PackageId>
+    <Title>mcp-guard — MCP tool-description security analyzer</Title>
+    <Description>A Roslyn analyzer that catches prompt-injection and tool-poisoning in C# MCP servers' [Description] tool metadata at build time, before they ship. Emits MCPGxxx diagnostics as IDE squiggles and build warnings.</Description>
+    <PackageTags>mcp;model-context-protocol;roslyn;roslyn-analyzer;analyzers;security;prompt-injection;static-analysis;dotnet;csharp</PackageTags>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+
+    <!-- NU5128: analyzer package has PackageReferences but no lib/ref assemblies (by design).
+         SuppressDependenciesWhenPacking clears the bogus dependency group; NoWarn is belt-and-braces. -->
+    <NoWarn>$(NoWarn);NU5128</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Compile-time only; PrivateAssets=all keeps Roslyn from flowing to consumers as a dependency. -->
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" PrivateAssets="all">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+
+  <!-- Required by RS2008 (analyzer release tracking). New rules go in Unshipped; move to Shipped on release. -->
+  <ItemGroup>
+    <AdditionalFiles Include="AnalyzerReleases.Shipped.md" />
+    <AdditionalFiles Include="AnalyzerReleases.Unshipped.md" />
+  </ItemGroup>
+
+  <!-- Pack the analyzer DLL where Roslyn discovers it, plus the README for the NuGet listing. -->
+  <ItemGroup>
+    <None Include="$(OutputPath)$(AssemblyName).dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
+    <None Include="..\..\README.md" Pack="true" PackagePath="\" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,30 @@
+<Project>
+  <PropertyGroup>
+    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+  </PropertyGroup>
+  <ItemGroup>
+    <!--
+      Roslyn floor. 4.8.0 is the compiler version that ships in the .NET 8 SDK (8.0.1xx) band and
+      VS 17.8. An analyzer must reference the OLDEST host it needs to load in — newer hosts (the
+      .NET 10 SDK ships Roslyn 5.0.0) load a 4.8.0-referencing analyzer fine, but a .NET 8 host
+      cannot load an analyzer built against a newer Roslyn. Do not bump without dropping net8 hosts.
+    -->
+    <PackageVersion Include="Microsoft.CodeAnalysis.CSharp" Version="4.8.0" />
+    <!-- Analyzer-authoring meta-analyzers (RS-rules: release tracking, extended rules, etc.). -->
+    <PackageVersion Include="Microsoft.CodeAnalysis.Analyzers" Version="5.3.0" />
+
+    <!-- Analyzer unit-test harness. Pin Workspaces to the analyzer's Roslyn version (4.8.0) so the
+         tests exercise the same compiler the analyzer is built against. -->
+    <PackageVersion Include="Microsoft.CodeAnalysis.CSharp.Analyzer.Testing" Version="1.1.4" />
+    <PackageVersion Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="4.8.0" />
+
+    <!-- MCP C# SDK — referenced by the poisoned sample for the [McpServerTool] attributes only. -->
+    <PackageVersion Include="ModelContextProtocol" Version="1.4.0" />
+
+    <!-- Test stack (matches the sibling repos). -->
+    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.14.1" />
+    <PackageVersion Include="xunit" Version="2.9.3" />
+    <PackageVersion Include="xunit.runner.visualstudio" Version="3.1.4" />
+    <PackageVersion Include="coverlet.collector" Version="6.0.4" />
+  </ItemGroup>
+</Project>

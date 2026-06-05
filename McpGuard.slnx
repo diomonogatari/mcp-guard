@@ -1,0 +1,11 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/McpGuard.Analyzers/McpGuard.Analyzers.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/McpGuard.Analyzers.Tests/McpGuard.Analyzers.Tests.csproj" />
+  </Folder>
+  <Folder Name="/samples/">
+    <Project Path="samples/PoisonedServer/PoisonedServer.csproj" />
+  </Folder>
+</Solution>
