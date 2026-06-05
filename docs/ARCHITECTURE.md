@@ -9,10 +9,11 @@ the IDE. It targets `netstandard2.0` so it loads in every supported build host �
 For every `[Description]` attribute in the compilation,
 [`McpToolDescriptionAnalyzer`](../src/McpGuard.Analyzers/McpToolDescriptionAnalyzer.cs):
 
-1. **Gates to the MCP tool surface** — keeps only descriptions on an `[McpServerTool]` method, one of
-   its parameters, or an `[McpServerToolType]` type. Ordinary `[Description]` usage is ignored, which
-   is what keeps false positives near zero. MCP attributes are matched by name, so the analyzer does
-   not require the MCP SDK to be resolvable.
+1. **Gates to the MCP surface** — keeps only strings the model actually reads: `[Description]` on an
+   `[McpServerTool]` / `[McpServerPrompt]` / `[McpServerResource]` member, one of its parameters, or an
+   `[McpServer*Type]` type, plus the `Name = "..."` of those members. Ordinary `[Description]` usage is
+   ignored, which keeps false positives near zero. MCP attributes are matched by name, so the analyzer
+   does not require the MCP SDK to be resolvable.
 2. **Extracts the text** — attribute arguments are compile-time constants, so the semantic model's
    constant value covers plain, verbatim, and raw string literals plus `const` concatenation
    ([`McpDescriptionExtractor`](../src/McpGuard.Analyzers/McpDescriptionExtractor.cs)).

@@ -9,11 +9,11 @@ using System.Linq;
 namespace McpGuard.Analyzers;
 
 /// <summary>
-/// Inspects the <c>[Description]</c> text of MCP tools — the strings an LLM consumes as instructions
-/// — and runs the registered <see cref="McpDescriptionRule"/> set over each one. Only descriptions
-/// on the MCP tool surface (a method carrying <c>[McpServerTool]</c>, one of its parameters, or a
-/// type carrying <c>[McpServerToolType]</c>) are inspected, so ordinary <c>[Description]</c> usage
-/// is never flagged.
+/// Inspects the strings an LLM reads from an MCP server — the <c>[Description]</c> text on
+/// <c>[McpServerTool]</c> / <c>[McpServerPrompt]</c> / <c>[McpServerResource]</c> members, their
+/// parameters, and <c>[McpServer*Type]</c> types, plus the <c>Name = "..."</c> of those members — and
+/// runs the registered <see cref="McpDescriptionRule"/> set over each. Ordinary <c>[Description]</c>
+/// usage outside the MCP surface is never flagged.
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public sealed class McpToolDescriptionAnalyzer : DiagnosticAnalyzer
@@ -29,11 +29,20 @@ public sealed class McpToolDescriptionAnalyzer : DiagnosticAnalyzer
     private static readonly ImmutableArray<DiagnosticDescriptor> Descriptors =
         RuleSet.Select(static rule => rule.Descriptor).ToImmutableArray();
 
-    private static readonly ImmutableHashSet<string> ToolAttributeNames =
-        ImmutableHashSet.Create(StringComparer.Ordinal, "McpServerTool", "McpServerToolAttribute");
+    // Member-level MCP attributes whose [Description] (and Name) the model reads.
+    private static readonly ImmutableHashSet<string> McpMemberAttributeNames =
+        ImmutableHashSet.Create(
+            StringComparer.Ordinal,
+            "McpServerTool", "McpServerToolAttribute",
+            "McpServerPrompt", "McpServerPromptAttribute",
+            "McpServerResource", "McpServerResourceAttribute");
 
-    private static readonly ImmutableHashSet<string> ToolTypeAttributeNames =
-        ImmutableHashSet.Create(StringComparer.Ordinal, "McpServerToolType", "McpServerToolTypeAttribute");
+    private static readonly ImmutableHashSet<string> McpTypeAttributeNames =
+        ImmutableHashSet.Create(
+            StringComparer.Ordinal,
+            "McpServerToolType", "McpServerToolTypeAttribute",
+            "McpServerPromptType", "McpServerPromptTypeAttribute",
+            "McpServerResourceType", "McpServerResourceTypeAttribute");
 
     private static readonly ImmutableHashSet<string> DescriptionAttributeNames =
         ImmutableHashSet.Create(StringComparer.Ordinal, "Description", "DescriptionAttribute");
@@ -44,37 +53,44 @@ public sealed class McpToolDescriptionAnalyzer : DiagnosticAnalyzer
     {
         context.EnableConcurrentExecution();
         context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
-        context.RegisterSyntaxNodeAction(AnalyzeDescriptionAttribute, SyntaxKind.Attribute);
+        context.RegisterSyntaxNodeAction(AnalyzeAttribute, SyntaxKind.Attribute);
     }
 
-    private static void AnalyzeDescriptionAttribute(SyntaxNodeAnalysisContext context)
+    private static void AnalyzeAttribute(SyntaxNodeAnalysisContext context)
     {
         var attribute = (AttributeSyntax)context.Node;
+        string name = GetSimpleName(attribute.Name);
 
-        if (!DescriptionAttributeNames.Contains(GetSimpleName(attribute.Name)))
+        // [Description] on the MCP surface (member, parameter, or type).
+        if (DescriptionAttributeNames.Contains(name))
         {
+            if (GetSurfaceTarget(attribute) is { } target
+                && McpDescriptionExtractor.TryGetDescription(attribute, context.SemanticModel, target, context.CancellationToken, out McpDescription description))
+            {
+                RunRules(in description, context);
+            }
+
             return;
         }
 
-        if (GetMcpToolSurfaceTarget(attribute) is not { } target)
+        // The Name = "..." of an MCP member attribute is also model-visible.
+        if (McpMemberAttributeNames.Contains(name)
+            && McpDescriptionExtractor.TryGetToolName(attribute, context.SemanticModel, context.CancellationToken, out McpDescription toolName))
         {
-            return;
+            RunRules(in toolName, context);
         }
+    }
 
-        if (!McpDescriptionExtractor.TryExtract(attribute, context.SemanticModel, target, context.CancellationToken, out McpDescription description))
-        {
-            return;
-        }
-
+    private static void RunRules(in McpDescription description, SyntaxNodeAnalysisContext context)
+    {
         foreach (McpDescriptionRule rule in RuleSet)
         {
             rule.Analyze(in description, context);
         }
     }
 
-    // Returns which part of the MCP tool surface the [Description] annotates, or null if it is not
-    // part of the surface an LLM reads (so ordinary [Description] usage is never flagged).
-    private static McpDescriptionTarget? GetMcpToolSurfaceTarget(AttributeSyntax attribute)
+    // Which part of the MCP surface the [Description] annotates, or null if it is ordinary usage.
+    private static McpDescriptionTarget? GetSurfaceTarget(AttributeSyntax attribute)
     {
         if (attribute.Parent is not AttributeListSyntax list)
         {
@@ -84,11 +100,11 @@ public sealed class McpToolDescriptionAnalyzer : DiagnosticAnalyzer
         switch (list.Parent)
         {
             case MethodDeclarationSyntax method:
-                return HasAttribute(method.AttributeLists, ToolAttributeNames) ? McpDescriptionTarget.Tool : null;
+                return HasAttribute(method.AttributeLists, McpMemberAttributeNames) ? McpDescriptionTarget.Member : null;
             case ParameterSyntax parameter when parameter.FirstAncestorOrSelf<BaseMethodDeclarationSyntax>() is { } owner:
-                return HasAttribute(owner.AttributeLists, ToolAttributeNames) ? McpDescriptionTarget.Parameter : null;
+                return HasAttribute(owner.AttributeLists, McpMemberAttributeNames) ? McpDescriptionTarget.Parameter : null;
             case TypeDeclarationSyntax type:
-                return HasAttribute(type.AttributeLists, ToolTypeAttributeNames) ? McpDescriptionTarget.ToolType : null;
+                return HasAttribute(type.AttributeLists, McpTypeAttributeNames) ? McpDescriptionTarget.Type : null;
             default:
                 return null;
         }
