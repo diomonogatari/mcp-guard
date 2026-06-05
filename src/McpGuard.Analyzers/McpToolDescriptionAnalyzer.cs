@@ -21,7 +21,8 @@ public sealed class McpToolDescriptionAnalyzer : DiagnosticAnalyzer
     private static readonly ImmutableArray<McpDescriptionRule> RuleSet =
         ImmutableArray.Create<McpDescriptionRule>(
             new PromptInjectionRule(),
-            new HiddenTextRule());
+            new HiddenTextRule(),
+            new SecretReferenceRule());
 
     private static readonly ImmutableArray<DiagnosticDescriptor> Descriptors =
         RuleSet.Select(static rule => rule.Descriptor).ToImmutableArray();

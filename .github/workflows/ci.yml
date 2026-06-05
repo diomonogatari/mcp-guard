@@ -56,13 +56,13 @@ jobs:
         run: |
           dotnet build samples/PoisonedServer/PoisonedServer.csproj -c Release --no-incremental \
             -p:TreatWarningsAsErrors=false 2>&1 | tee build-sample.log
-          for id in MCPG001 MCPG002; do
+          for id in MCPG001 MCPG002 MCPG003; do
             if ! grep -q "warning $id" build-sample.log; then
               echo "::error::Expected $id to fire on the poisoned sample, but it did not."
               exit 1
             fi
           done
-          echo "MCPG001 and MCPG002 fired on the poisoned sample as expected."
+          echo "MCPG001, MCPG002, and MCPG003 fired on the poisoned sample as expected."
 
       - name: Pack analyzer for local feed
         run: >

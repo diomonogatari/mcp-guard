@@ -14,4 +14,7 @@ internal static class DiagnosticIds
 
     /// <summary>Hidden / non-printable Unicode (zero-width, bidi controls, BOM, tag chars) in an MCP tool description.</summary>
     public const string HiddenTextInDescription = "MCPG002";
+
+    /// <summary>Sensitive credential / secret-file reference inside an MCP tool description.</summary>
+    public const string SecretReferenceInDescription = "MCPG003";
 }
