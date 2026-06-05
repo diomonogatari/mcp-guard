@@ -5,19 +5,26 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using System;
 using System.Collections.Immutable;
 using System.Linq;
-using System.Threading;
 
 namespace McpGuard.Analyzers;
 
 /// <summary>
-/// Flags prompt-injection / tool-poisoning phrasing inside the <c>[Description]</c> text of MCP tools —
-/// the strings an LLM consumes as instructions. Only descriptions that are part of the MCP tool surface
-/// (a method carrying <c>[McpServerTool]</c>, one of its parameters, or a type carrying
-/// <c>[McpServerToolType]</c>) are inspected, so ordinary <c>[Description]</c> usage is never flagged.
+/// Inspects the <c>[Description]</c> text of MCP tools — the strings an LLM consumes as instructions
+/// — and runs the registered <see cref="McpDescriptionRule"/> set over each one. Only descriptions
+/// on the MCP tool surface (a method carrying <c>[McpServerTool]</c>, one of its parameters, or a
+/// type carrying <c>[McpServerToolType]</c>) are inspected, so ordinary <c>[Description]</c> usage
+/// is never flagged.
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public sealed class McpToolDescriptionAnalyzer : DiagnosticAnalyzer
 {
+    private static readonly ImmutableArray<McpDescriptionRule> RuleSet =
+        ImmutableArray.Create<McpDescriptionRule>(
+            new PromptInjectionRule());
+
+    private static readonly ImmutableArray<DiagnosticDescriptor> Descriptors =
+        RuleSet.Select(static rule => rule.Descriptor).ToImmutableArray();
+
     private static readonly ImmutableHashSet<string> ToolAttributeNames =
         ImmutableHashSet.Create(StringComparer.Ordinal, "McpServerTool", "McpServerToolAttribute");
 
@@ -27,7 +34,7 @@ public sealed class McpToolDescriptionAnalyzer : DiagnosticAnalyzer
     private static readonly ImmutableHashSet<string> DescriptionAttributeNames =
         ImmutableHashSet.Create(StringComparer.Ordinal, "Description", "DescriptionAttribute");
 
-    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => Rules.All;
+    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => Descriptors;
 
     public override void Initialize(AnalysisContext context)
     {
@@ -45,71 +52,46 @@ public sealed class McpToolDescriptionAnalyzer : DiagnosticAnalyzer
             return;
         }
 
-        if (!IsOnMcpToolSurface(attribute))
+        if (GetMcpToolSurfaceTarget(attribute) is not { } target)
         {
             return;
         }
 
-        if (!TryGetDescriptionText(attribute, context.SemanticModel, context.CancellationToken, out string text, out Location location))
+        if (!McpDescriptionExtractor.TryExtract(attribute, context.SemanticModel, target, context.CancellationToken, out McpDescription description))
         {
             return;
         }
 
-        if (ToolDescriptionPhrases.TryFindInjectionPhrase(text, out string match))
+        foreach (McpDescriptionRule rule in RuleSet)
         {
-            context.ReportDiagnostic(Diagnostic.Create(Rules.PromptInjection, location, match));
+            rule.Analyze(in description, context);
         }
     }
 
-    // True when the [Description] annotates an MCP tool method, a parameter of one, or an MCP tool type.
-    private static bool IsOnMcpToolSurface(AttributeSyntax attribute)
+    // Returns which part of the MCP tool surface the [Description] annotates, or null if it is not
+    // part of the surface an LLM reads (so ordinary [Description] usage is never flagged).
+    private static McpDescriptionTarget? GetMcpToolSurfaceTarget(AttributeSyntax attribute)
     {
         if (attribute.Parent is not AttributeListSyntax list)
         {
-            return false;
+            return null;
         }
 
         switch (list.Parent)
         {
             case MethodDeclarationSyntax method:
-                return HasAttribute(method.AttributeLists, ToolAttributeNames);
+                return HasAttribute(method.AttributeLists, ToolAttributeNames) ? McpDescriptionTarget.Tool : null;
             case ParameterSyntax parameter when parameter.FirstAncestorOrSelf<BaseMethodDeclarationSyntax>() is { } owner:
-                return HasAttribute(owner.AttributeLists, ToolAttributeNames);
+                return HasAttribute(owner.AttributeLists, ToolAttributeNames) ? McpDescriptionTarget.Parameter : null;
             case TypeDeclarationSyntax type:
-                return HasAttribute(type.AttributeLists, ToolTypeAttributeNames);
+                return HasAttribute(type.AttributeLists, ToolTypeAttributeNames) ? McpDescriptionTarget.ToolType : null;
             default:
-                return false;
+                return null;
         }
     }
 
     private static bool HasAttribute(SyntaxList<AttributeListSyntax> attributeLists, ImmutableHashSet<string> names)
         => attributeLists.SelectMany(static l => l.Attributes).Any(a => names.Contains(GetSimpleName(a.Name)));
-
-    // Pulls the compile-time-constant description text out of the first positional argument. Using the
-    // semantic model's constant value keeps us robust to verbatim strings and const concatenation.
-    // (Interpolated strings are not C# constants and are deferred to the Phase 1 string engine.)
-    private static bool TryGetDescriptionText(AttributeSyntax attribute, SemanticModel semanticModel, CancellationToken cancellationToken, out string text, out Location location)
-    {
-        text = string.Empty;
-        location = Location.None;
-
-        AttributeArgumentSyntax? argument = attribute.ArgumentList?.Arguments
-            .FirstOrDefault(static a => a.NameEquals is null && a.NameColon is null);
-        if (argument is null)
-        {
-            return false;
-        }
-
-        Optional<object?> constant = semanticModel.GetConstantValue(argument.Expression, cancellationToken);
-        if (!constant.HasValue || constant.Value is not string value)
-        {
-            return false;
-        }
-
-        text = value;
-        location = argument.Expression.GetLocation();
-        return true;
-    }
 
     private static string GetSimpleName(NameSyntax name) => name switch
     {
