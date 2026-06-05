@@ -41,6 +41,7 @@ as the C# SDK has stabilized and teams are shipping production MCP servers.
 | Rule | Summary | Severity |
 |------|---------|----------|
 | [`MCPG001`](docs/rules/MCPG001.md) | An MCP tool/parameter/type `[Description]` contains instruction-style phrasing (e.g. *"ignore previous instructions"*, *"do not tell the user"*, *"before answering, …"*, *"system prompt"*). | Warning |
+| [`MCPG002`](docs/rules/MCPG002.md) | An MCP tool/parameter/type `[Description]` contains hidden or non-printable Unicode (zero-width spaces, bidirectional controls, BOM, tag characters). | Warning |
 
 Precision is the priority: `mcp-guard` only inspects descriptions on the **MCP tool surface**
 (`[McpServerTool]` methods, their parameters, and `[McpServerToolType]` types), so ordinary

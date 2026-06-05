@@ -11,4 +11,7 @@ internal static class DiagnosticIds
 
     /// <summary>Prompt-injection / instruction-style phrasing embedded in an MCP tool description.</summary>
     public const string PromptInjectionInDescription = "MCPG001";
+
+    /// <summary>Hidden / non-printable Unicode (zero-width, bidi controls, BOM, tag chars) in an MCP tool description.</summary>
+    public const string HiddenTextInDescription = "MCPG002";
 }

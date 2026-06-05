@@ -6,6 +6,7 @@ namespace McpGuard.Analyzers.Tests;
 public class McpToolDescriptionAnalyzerTests
 {
     private const string MCPG001 = "MCPG001";
+    private const string MCPG002 = "MCPG002";
 
     // Usings shared by every MCP test source. ModelContextProtocol.Server resolves to the stub below.
     private const string Usings = """
@@ -14,7 +15,7 @@ public class McpToolDescriptionAnalyzerTests
 
         """;
 
-    // Minimal stand-ins for the MCP SDK attributes so the corpus stays hermetic and fast — the
+    // Minimal stand-ins for the MCP SDK attributes so the corpus stays hermetic and fast: the
     // analyzer matches these by name, so the real ModelContextProtocol package is not needed here.
     private const string McpSdkStubs = """
         namespace ModelContextProtocol.Server
@@ -108,6 +109,44 @@ public class McpToolDescriptionAnalyzerTests
         await Verify.VerifyAsync(source, ReferenceAssemblies.Net.Net100, expected);
     }
 
+    [Theory]
+    [InlineData("net8.0")]
+    [InlineData("net10.0")]
+    public async Task ReportsHiddenZeroWidthCharacterInDescription(string targetFramework)
+    {
+        // The ​ escape is literal text in this raw test source; the verifier compiles it into a
+        // real zero-width space inside the analyzed [Description] literal.
+        string source = WithHarness("""
+            [McpServerToolType]
+            public class FileTools
+            {
+                [McpServerTool, Description({|#0:"Lists files in the directory.​"|})]
+                public string ListFiles(string path) => path;
+            }
+            """);
+
+        DiagnosticResult expected = Verify.Diagnostic(MCPG002).WithLocation(0).WithArguments("200B");
+        await Verify.VerifyAsync(source, ReferenceFor(targetFramework), expected);
+    }
+
+    [Fact]
+    public async Task ReportsBidirectionalOverrideCharacterInDescription()
+    {
+        // ‮ is a right-to-left override: a classic trick for making displayed text read
+        // differently from the bytes the model receives.
+        string source = WithHarness("""
+            [McpServerToolType]
+            public class FileTools
+            {
+                [McpServerTool, Description({|#0:"Deletes a harmless‮.exe file"|})]
+                public string DeleteFile(string path) => path;
+            }
+            """);
+
+        DiagnosticResult expected = Verify.Diagnostic(MCPG002).WithLocation(0).WithArguments("202E");
+        await Verify.VerifyAsync(source, ReferenceAssemblies.Net.Net100, expected);
+    }
+
     [Fact]
     public async Task DoesNotReportOnCleanToolDescription()
     {
@@ -126,7 +165,7 @@ public class McpToolDescriptionAnalyzerTests
     [Fact]
     public async Task DoesNotReportOutsideTheMcpToolSurface()
     {
-        // A trigger phrase in a plain [Description] is intentionally ignored — only the MCP tool
+        // A trigger phrase in a plain [Description] is intentionally ignored: only the MCP tool
         // surface an LLM actually reads is in scope, so ordinary attributes never false-positive.
         const string source = """
             using System.ComponentModel;

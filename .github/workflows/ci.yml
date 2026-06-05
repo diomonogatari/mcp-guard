@@ -51,16 +51,18 @@ jobs:
           --collect:"XPlat Code Coverage"
           --results-directory ./coverage
 
-      # Proof the analyzer is wired end-to-end: a fresh build of the poisoned sample must emit MCPG001.
+      # Proof the analyzer is wired end-to-end: a fresh build of the poisoned sample must emit each rule.
       - name: Verify analyzer fires on the poisoned sample
         run: |
           dotnet build samples/PoisonedServer/PoisonedServer.csproj -c Release --no-incremental \
             -p:TreatWarningsAsErrors=false 2>&1 | tee build-sample.log
-          if ! grep -q "warning MCPG001" build-sample.log; then
-            echo "::error::Expected MCPG001 to fire on the poisoned sample, but it did not."
-            exit 1
-          fi
-          echo "MCPG001 fired on the poisoned sample as expected."
+          for id in MCPG001 MCPG002; do
+            if ! grep -q "warning $id" build-sample.log; then
+              echo "::error::Expected $id to fire on the poisoned sample, but it did not."
+              exit 1
+            fi
+          done
+          echo "MCPG001 and MCPG002 fired on the poisoned sample as expected."
 
       - name: Pack analyzer for local feed
         run: >
