@@ -6,3 +6,4 @@
 Rule ID | Category | Severity | Notes
 --------|----------|----------|-------
 MCPG003 | Security | Warning  | MCP tool description references a sensitive credential artifact.
+MCPG004 | Security | Warning  | MCP tool description directs data to an external destination.

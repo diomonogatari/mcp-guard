@@ -17,4 +17,7 @@ internal static class DiagnosticIds
 
     /// <summary>Sensitive credential / secret-file reference inside an MCP tool description.</summary>
     public const string SecretReferenceInDescription = "MCPG003";
+
+    /// <summary>Data-exfiltration directive (transmit sensitive data to an external destination) in a description.</summary>
+    public const string ExfiltrationInDescription = "MCPG004";
 }
