@@ -17,4 +17,9 @@
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" PrivateAssets="all" />
   </ItemGroup>
 
+  <!-- The test project unit-tests the baseline merge logic (ApplyUpdates) directly. -->
+  <ItemGroup>
+    <InternalsVisibleTo Include="McpGuard.Analyzers.Tests" />
+  </ItemGroup>
+
 </Project>
