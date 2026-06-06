@@ -1,6 +1,7 @@
 <Solution>
   <Folder Name="/src/">
     <Project Path="src/McpGuard.Analyzers/McpGuard.Analyzers.csproj" />
+    <Project Path="src/McpGuard.Analyzers.CodeFixes/McpGuard.Analyzers.CodeFixes.csproj" />
   </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/McpGuard.Analyzers.Tests/McpGuard.Analyzers.Tests.csproj" />

@@ -16,6 +16,7 @@
     <!-- Analyzer unit-test harness. Pin Workspaces to the analyzer's Roslyn version (4.8.0) so the
          tests exercise the same compiler the analyzer is built against. -->
     <PackageVersion Include="Microsoft.CodeAnalysis.CSharp.Analyzer.Testing" Version="1.1.4" />
+    <PackageVersion Include="Microsoft.CodeAnalysis.CSharp.CodeFix.Testing" Version="1.1.4" />
     <PackageVersion Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="4.8.0" />
 
     <!-- MCP C# SDK — referenced by the poisoned sample for the [McpServerTool] attributes only. -->

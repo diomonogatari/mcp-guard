@@ -12,6 +12,7 @@
     <PackageReference Include="xunit.runner.visualstudio" />
     <PackageReference Include="coverlet.collector" />
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Analyzer.Testing" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.CodeFix.Testing" />
     <!-- Pin Workspaces to the analyzer's Roslyn version (4.8.0) so the verifier runs the same
          compiler the analyzer is built against, rather than whatever the test graph floats to. -->
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" />
@@ -21,6 +22,7 @@
        verifier; we do not want it running on the test project's own sources. -->
   <ItemGroup>
     <ProjectReference Include="..\..\src\McpGuard.Analyzers\McpGuard.Analyzers.csproj" />
+    <ProjectReference Include="..\..\src\McpGuard.Analyzers.CodeFixes\McpGuard.Analyzers.CodeFixes.csproj" />
   </ItemGroup>
 
   <ItemGroup>

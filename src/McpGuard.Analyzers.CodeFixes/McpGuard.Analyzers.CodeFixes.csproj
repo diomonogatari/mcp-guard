@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <!-- Shipped inside the McpGuard.Analyzers package (analyzers/dotnet/cs), not on its own. -->
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <RootNamespace>McpGuard.Analyzers</RootNamespace>
+    <AssemblyName>McpGuard.Analyzers.CodeFixes</AssemblyName>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
+    <IsPackable>false</IsPackable>
+    <IncludeBuildOutput>false</IncludeBuildOutput>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Code fixes run in the IDE, where Workspaces is available; compile-time only. -->
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" PrivateAssets="all" />
+  </ItemGroup>
+
+</Project>

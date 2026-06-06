@@ -44,10 +44,29 @@
     <AdditionalFiles Include="AnalyzerReleases.Unshipped.md" />
   </ItemGroup>
 
-  <!-- Pack the analyzer DLL where Roslyn discovers it, plus the README for the NuGet listing. -->
+  <!-- Build the code-fix project alongside (its DLL ships in the same analyzers/dotnet/cs folder),
+       without referencing its output as a compile-time library. -->
   <ItemGroup>
-    <None Include="$(OutputPath)$(AssemblyName).dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
+    <ProjectReference Include="..\McpGuard.Analyzers.CodeFixes\McpGuard.Analyzers.CodeFixes.csproj"
+                      ReferenceOutputAssembly="false" PrivateAssets="all" />
     <None Include="..\..\README.md" Pack="true" PackagePath="\" />
   </ItemGroup>
+
+  <!-- Pack the analyzer and code-fix DLLs where Roslyn discovers them. -->
+  <PropertyGroup>
+    <TargetsForTfmSpecificContentInPackage>$(TargetsForTfmSpecificContentInPackage);_PackAnalyzerDlls</TargetsForTfmSpecificContentInPackage>
+  </PropertyGroup>
+
+  <Target Name="_PackAnalyzerDlls">
+    <MSBuild Projects="..\McpGuard.Analyzers.CodeFixes\McpGuard.Analyzers.CodeFixes.csproj"
+             Targets="GetTargetPath"
+             Properties="Configuration=$(Configuration);TargetFramework=netstandard2.0">
+      <Output ItemName="_CodeFixesDll" TaskParameter="TargetOutputs" />
+    </MSBuild>
+    <ItemGroup>
+      <TfmSpecificPackageFile Include="$(OutputPath)$(AssemblyName).dll" PackagePath="analyzers/dotnet/cs" />
+      <TfmSpecificPackageFile Include="@(_CodeFixesDll)" PackagePath="analyzers/dotnet/cs" />
+    </ItemGroup>
+  </Target>
 
 </Project>
