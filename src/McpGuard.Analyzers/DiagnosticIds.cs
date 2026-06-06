@@ -35,4 +35,7 @@ internal static class DiagnosticIds
 
     /// <summary>Off-screen whitespace padding (a long run of spaces/tabs) in a description.</summary>
     public const string WhitespacePaddingInDescription = "MCPG010";
+
+    /// <summary>An encoded (base64/hex) payload blob in a description. Info-level.</summary>
+    public const string EncodedBlobInDescription = "MCPG011";
 }

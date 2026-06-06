@@ -12,3 +12,4 @@ MCPG006 | Security | Warning  | MCP tool description contains manipulative or au
 MCPG008 | Security | Warning  | MCP tool description contains embedded instruction markup.
 MCPG009 | Security | Warning  | MCP tool description tries to influence other tools.
 MCPG010 | Security | Warning  | MCP tool description contains off-screen whitespace padding.
+MCPG011 | Security | Info     | MCP tool description contains an encoded payload blob.
