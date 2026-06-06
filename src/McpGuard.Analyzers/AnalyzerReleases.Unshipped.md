@@ -9,3 +9,4 @@ MCPG003 | Security | Warning  | MCP tool description references a sensitive cred
 MCPG004 | Security | Warning  | MCP tool description routes data to an external destination.
 MCPG005 | Security | Warning  | MCP tool description contains an ANSI/terminal escape sequence.
 MCPG006 | Security | Warning  | MCP tool description contains manipulative or authority phrasing.
+MCPG008 | Security | Warning  | MCP tool description contains embedded instruction markup.

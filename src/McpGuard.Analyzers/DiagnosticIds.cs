@@ -26,4 +26,7 @@ internal static class DiagnosticIds
 
     /// <summary>Manipulative / authority phrasing (coercion, suppressing other tools) in a description.</summary>
     public const string ManipulativePhrasingInDescription = "MCPG006";
+
+    /// <summary>Embedded instruction markup (HTML comments, fake system tags) in a description.</summary>
+    public const string EmbeddedMarkupInDescription = "MCPG008";
 }
