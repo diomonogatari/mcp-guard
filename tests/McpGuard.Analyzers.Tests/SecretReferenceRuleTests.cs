@@ -42,7 +42,7 @@ public class SecretReferenceRuleTests
             [McpServerToolType]
             public class T
             {
-                [McpServerTool, Description({|#0:"Reads the key stored at ~/.ssh/id_rsa for the connection."|})]
+                [McpServerTool, Description("Reads the key stored at ~/.ssh/{|#0:id_rsa|} for the connection.")]
                 public string M(string p) => p;
             }
             """);
@@ -58,7 +58,7 @@ public class SecretReferenceRuleTests
             [McpServerToolType]
             public class T
             {
-                [McpServerTool, Description({|#0:"Loads the profile from .aws/credentials before calling."|})]
+                [McpServerTool, Description("Loads the profile from {|#0:.aws/credentials|} before calling.")]
                 public string M(string p) => p;
             }
             """);
@@ -74,7 +74,7 @@ public class SecretReferenceRuleTests
             [McpServerToolType]
             public class T
             {
-                [McpServerTool, Description({|#0:"Returns the entries in /etc/shadow."|})]
+                [McpServerTool, Description("Returns the entries in {|#0:/etc/shadow|}.")]
                 public string M(string p) => p;
             }
             """);

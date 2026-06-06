@@ -22,7 +22,7 @@ internal sealed class PromptInjectionRule : McpDescriptionRule
     {
         if (ToolDescriptionPhrases.TryFindInjectionPhrase(description.Text, out string match))
         {
-            context.ReportDiagnostic(Diagnostic.Create(Rule, description.Location, match));
+            context.ReportDiagnostic(Diagnostic.Create(Rule, description.LocationOf(match), match));
         }
     }
 }

@@ -22,7 +22,7 @@ internal sealed class SecretReferenceRule : McpDescriptionRule
     {
         if (SecretArtifacts.TryFind(description.Text, out string match))
         {
-            context.ReportDiagnostic(Diagnostic.Create(Rule, description.Location, match));
+            context.ReportDiagnostic(Diagnostic.Create(Rule, description.LocationOf(match), match));
         }
     }
 }
