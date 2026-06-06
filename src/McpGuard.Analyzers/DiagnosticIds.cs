@@ -32,4 +32,7 @@ internal static class DiagnosticIds
 
     /// <summary>Cross-tool / tool-shadowing references (influencing other tools) in a description.</summary>
     public const string CrossToolReferenceInDescription = "MCPG009";
+
+    /// <summary>Off-screen whitespace padding (a long run of spaces/tabs) in a description.</summary>
+    public const string WhitespacePaddingInDescription = "MCPG010";
 }

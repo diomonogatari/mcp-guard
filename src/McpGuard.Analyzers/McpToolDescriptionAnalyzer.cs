@@ -27,7 +27,8 @@ public sealed class McpToolDescriptionAnalyzer : DiagnosticAnalyzer
             new AnsiEscapeRule(),
             new ManipulativePhrasingRule(),
             new EmbeddedMarkupRule(),
-            new CrossToolReferenceRule());
+            new CrossToolReferenceRule(),
+            new WhitespacePaddingRule());
 
     private static readonly ImmutableArray<DiagnosticDescriptor> Descriptors =
         RuleSet.Select(static rule => rule.Descriptor).ToImmutableArray();
