@@ -76,3 +76,34 @@ jobs:
         with:
           directory: ./coverage
           fail_ci_if_error: false
+
+  action-gate:
+    name: Action gates on findings
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: |
+            8.0.x
+            10.0.x
+
+      # Dogfood the reusable action on the poisoned sample: it must fail the build.
+      - name: Run mcp-guard action (must fail)
+        id: guard
+        continue-on-error: true
+        uses: ./
+        with:
+          project: samples/PoisonedServer/PoisonedServer.csproj
+
+      - name: Assert the action failed
+        run: |
+          if [ "${{ steps.guard.outcome }}" != "failure" ]; then
+            echo "::error::The mcp-guard action should have failed on the poisoned sample, but it did not."
+            exit 1
+          fi
+          echo "The mcp-guard action correctly failed the build on the poisoned sample."

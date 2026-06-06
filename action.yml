@@ -1,0 +1,74 @@
+name: mcp-guard
+description: >-
+  Fail CI when a C# MCP server ships prompt-injection or tool-poisoning in its tool descriptions.
+  Builds your project with the mcp-guard Roslyn analyzer and escalates every MCPGxxx finding to an
+  error. Your project must reference the McpGuard.Analyzers package.
+author: diomonogatari
+branding:
+  icon: shield
+  color: purple
+
+inputs:
+  project:
+    description: >-
+      Project or solution to analyze. Leave empty to let dotnet pick the single project/solution in the
+      working directory.
+    required: false
+    default: ''
+  configuration:
+    description: Build configuration.
+    required: false
+    default: Release
+  dotnet-version:
+    description: >-
+      SDK version(s) to install via actions/setup-dotnet (one per line). Leave empty to use the SDK
+      already on the runner.
+    required: false
+    default: ''
+  warnings-as-errors:
+    description: Escalate mcp-guard findings to build errors so they fail CI.
+    required: false
+    default: 'true'
+  rules:
+    description: >-
+      Semicolon-separated rule ids to escalate to errors. Defaults to the warning-severity mcp-guard
+      rules; the Info rules (MCPG007, MCPG011) are advisory and not failed by default, and MCPG012 is
+      already an error.
+    required: false
+    default: MCPG001;MCPG002;MCPG003;MCPG004;MCPG005;MCPG006;MCPG008;MCPG009;MCPG010;MCPG013
+  working-directory:
+    description: Directory to run in.
+    required: false
+    default: '.'
+
+runs:
+  using: composite
+  steps:
+    - name: Set up .NET
+      if: ${{ inputs.dotnet-version != '' }}
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: ${{ inputs.dotnet-version }}
+
+    - name: Run mcp-guard
+      shell: bash
+      working-directory: ${{ inputs.working-directory }}
+      # Inputs come in as env vars (not interpolated into the script) to avoid shell injection.
+      env:
+        MCPG_PROJECT: ${{ inputs.project }}
+        MCPG_CONFIG: ${{ inputs.configuration }}
+        MCPG_WAE: ${{ inputs.warnings-as-errors }}
+        MCPG_RULES: ${{ inputs.rules }}
+      run: |
+        set -euo pipefail
+        args=(build)
+        if [ -n "$MCPG_PROJECT" ]; then
+          args+=("$MCPG_PROJECT")
+        fi
+        args+=(-c "$MCPG_CONFIG")
+        if [ "$MCPG_WAE" = "true" ]; then
+          # One quoted token keeps the semicolon list intact for MSBuild.
+          args+=("-warnaserror:$MCPG_RULES")
+        fi
+        echo "+ dotnet ${args[*]}"
+        dotnet "${args[@]}"

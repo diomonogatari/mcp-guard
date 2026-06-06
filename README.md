@@ -61,6 +61,19 @@ dotnet_diagnostic.MCPG001.severity = error
 Inline suppression (`#pragma warning disable MCPG001`) is supported, but suppressing a security rule
 should be rare — prefer rewording the description.
 
+## Gate your CI
+
+mcp-guard runs inside your build, so failing CI on a finding is just a matter of escalating the rules.
+The reusable GitHub Action does it for you:
+
+```yaml
+- uses: diomonogatari/mcp-guard@v1
+  with:
+    project: src/MyMcpServer/MyMcpServer.csproj
+```
+
+See [docs/CI.md](docs/CI.md) for inputs, the plain `dotnet build` equivalent, and `.editorconfig` gating.
+
 ## Documentation
 
 - [Threat model](docs/THREAT-MODEL.md) — why descriptions are attack surface, and the static-vs-runtime scope
