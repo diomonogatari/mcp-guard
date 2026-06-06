@@ -76,9 +76,12 @@ See [docs/CI.md](docs/CI.md) for inputs, the plain `dotnet build` equivalent, an
 
 ## Documentation
 
+- [Coverage scorecard](docs/SCORECARD.md) — what it catches, what it doesn't, and the evidence
 - [Threat model](docs/THREAT-MODEL.md) — why descriptions are attack surface, and the static-vs-runtime scope
 - [Architecture](docs/ARCHITECTURE.md) — how the analyzer works
-- [Roadmap](docs/ROADMAP.md) — the rule backlog on the path to 1.0
+- [Gating CI](docs/CI.md) — the reusable Action and `.editorconfig` gating
+- [Roadmap](docs/ROADMAP.md) — the shipped rule catalog on the path to 1.0
+- [Test plan](docs/TEST-PLAN.md) — the known-attack corpus and live-server tiers
 - [Rule reference](docs/rules/) — one page per `MCPGxxx`
 - [Contributing](CONTRIBUTING.md) — build, test, and add a rule
 - [Security policy](SECURITY.md)
