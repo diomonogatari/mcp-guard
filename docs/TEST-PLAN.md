@@ -162,6 +162,11 @@ cover. Resolutions:
 
 ## Scorecard & MCPTox coverage eval (scheduled, not PR)
 
+> **Status: blocked on dataset access.** The in-repo corpus (9 known attacks + 8 benign controls,
+> `KnownAttackCorpusTests`) is the coverage-and-precision story for 1.0. The larger external MCPTox recall
+> metric is deferred: its dataset lives behind `anonymous.4open.science` (bot-blocked) with an unconfirmed
+> license, so it cannot be vendored or fetched in CI until the source/license is confirmed.
+
 A separate, **scheduled** job (not the fast PR suite) that reports a coverage **percentage**:
 
 - **MCPTox** (arXiv 2508.14925): 1,312 cases, **~100% description-resident**, single-turn; paradigms
