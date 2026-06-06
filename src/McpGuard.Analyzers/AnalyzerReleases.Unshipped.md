@@ -15,3 +15,4 @@ MCPG009 | Security | Warning  | MCP tool description tries to influence other to
 MCPG010 | Security | Warning  | MCP tool description contains off-screen whitespace padding.
 MCPG011 | Security | Info     | MCP tool description contains an encoded payload blob.
 MCPG012 | Security | Error    | MCP tool description is a confirmed data-exfiltration payload.
+MCPG013 | Security | Warning  | MCP tool description drifted from the committed integrity baseline.

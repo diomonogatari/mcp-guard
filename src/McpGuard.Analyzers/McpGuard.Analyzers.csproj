@@ -44,6 +44,11 @@
     <AdditionalFiles Include="AnalyzerReleases.Unshipped.md" />
   </ItemGroup>
 
+  <!-- The test project exercises the baseline parser/fingerprinter (DescriptionBaseline) directly. -->
+  <ItemGroup>
+    <InternalsVisibleTo Include="McpGuard.Analyzers.Tests" />
+  </ItemGroup>
+
   <!-- Build the code-fix project alongside (its DLL ships in the same analyzers/dotnet/cs folder),
        without referencing its output as a compile-time library. -->
   <ItemGroup>

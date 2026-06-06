@@ -39,7 +39,9 @@ hints, embedded markup, …).
 A build-time analyzer cannot see runtime behavior or cross-session state. These remain the job of
 runtime / proxy tooling and are explicitly **not** covered:
 
-- **Rug pulls** — a description that mutates *after* the user approved it.
+- **Rug pulls at runtime** — a third-party server that serves a benign description at approval and a
+  hostile one *later*. (The *source-level* analog — a description changed in **your** server's source
+  after it was pinned — **is** covered, opt-in, by [MCPG013](rules/MCPG013.md)'s integrity baseline.)
 - **Tool shadowing** across connected servers.
 - **Cross-server confused deputy / toxic-flow** analysis.
 - **Live typosquatting** against the registry.

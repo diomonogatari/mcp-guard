@@ -68,12 +68,15 @@ taxonomies (see [Sources](#sources)).
 - **Robustness** — string extraction handles plain/verbatim/raw literals and `const` concatenation
   (done; interpolation cannot appear in attributes).
 
-## Differentiator: description-integrity baseline (rug-pull)
+## Differentiator: description-integrity baseline (rug-pull) — **shipped (MCPG013)**
 
 The one attack a runtime scanner catches but a text rule can't is the **rug-pull** — a description
-changed *after* the user approved it. Pin it in source: a committed `mcp-guard.baseline.json` of
-per-description hashes, with a diagnostic on drift unless the baseline is updated. This is the "does what
-runtime scanners structurally can't" story. Fast-follow if it doesn't fit 1.0.0.
+changed *after* the user approved it. mcp-guard pins it in source: a committed `McpGuard.Baseline.txt`
+of per-description fingerprints (added as an `AdditionalFiles`), with [MCPG013](rules/MCPG013.md) on
+drift unless the baseline is deliberately updated. The fingerprint is over the raw bytes, so even an
+invisible-character edit trips it. The feature is opt-in (inert until the baseline file exists). This is
+the "does what runtime scanners structurally can't" story for the *source-level* rug-pull; runtime
+mutation by a third-party server stays out of scope.
 
 ## Out of scope — runtime only
 

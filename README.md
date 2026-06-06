@@ -29,6 +29,7 @@ types — and flags prompt-injection / tool-poisoning patterns as IDE squiggles 
 | [`MCPG010`](docs/rules/MCPG010.md) | Off-screen whitespace padding (a long run of spaces/tabs) | Warning |
 | [`MCPG011`](docs/rules/MCPG011.md) | An encoded (base64/hex) payload blob | Info |
 | [`MCPG012`](docs/rules/MCPG012.md) | **Confirmed exfiltration payload** — a secret reference **and** an external sink together | **Error** |
+| [`MCPG013`](docs/rules/MCPG013.md) | Description drifted from the committed integrity baseline (rug-pull guard; opt-in) | Warning |
 
 Precision is the priority: mcp-guard only inspects descriptions on the **MCP tool surface**
 (`[McpServerTool]` / `[McpServerPrompt]` / `[McpServerResource]` members, their parameters, and the

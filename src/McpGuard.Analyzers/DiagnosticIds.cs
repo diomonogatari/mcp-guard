@@ -44,4 +44,7 @@ internal static class DiagnosticIds
 
     /// <summary>Escalation: a confirmed exfiltration payload (secret reference + external sink). Error-level.</summary>
     public const string ConfirmedExfiltrationInDescription = "MCPG012";
+
+    /// <summary>An MCP tool description drifted from the committed integrity baseline (rug-pull guard).</summary>
+    public const string DescriptionBaselineDrift = "MCPG013";
 }
