@@ -78,8 +78,11 @@ A single source-of-truth corpus expressed as **inline data**, not on-disk files:
 - Provenance + the neutralization policy live in a short `tests/.../KnownAttacks/README.md`.
 
 ### Tier 3 — Round-trip authenticity & scorecard (`mcp-server-factory`) — the proof
-A **separate** `McpGuard.IntegrationTests` project (do not mix the runtime harness into the Roslyn-pinned
-analyzer-test project) referencing the `McpServerFactory` NuGet. For each `static` corpus case:
+**Implemented** in `McpGuard.IntegrationTests` (`LiveServerTests`): a poisoned `[Description]` is booted
+as a real in-process server and asserted to survive serialization into the served `tools/list`
+(`McpClientTool.Description`), with a benign control. A **separate** project (do not mix the runtime
+harness into the Roslyn-pinned analyzer-test project) referencing the `McpServerFactory` NuGet. For each
+`static` corpus case:
 
 - Boot the same poisoned tool in-process (`factory.CreateTestClientAsync()`), call `tools/list`, and
   assert the neutralized payload survives serialization into the served `McpClientTool.Description` /
@@ -89,6 +92,11 @@ analyzer-test project) referencing the `McpServerFactory` NuGet. For each `stati
   generated artifact for the README.
 
 ### Tier 4 — Rug-pull authenticity (MCPG013) (`mcp-server-factory`) — the differentiator
+**Implemented** in `McpGuard.IntegrationTests` (`LiveServerTests`): a benign tool is booted, then its
+description is swapped at runtime via the live tool collection; the next `tools/list` returns the
+poisoned text and a `tools/list_changed` notification fires — proving the runtime rug-pull mcp-guard's
+MCPG013 mirrors at the source level. (Fast and in-process, so it runs in the standard PR suite.)
+
 The factory can serve **different metadata on a second `tools/list`** today (verified): reach the live
 `McpServerPrimitiveCollection<McpServerTool>` via
 `factory.Services.GetRequiredService<IOptions<McpServerOptions>>().Value.ToolCollection`, then

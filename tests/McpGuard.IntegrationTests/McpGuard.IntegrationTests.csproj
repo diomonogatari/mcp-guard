@@ -1,0 +1,26 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>net8.0;net10.0</TargetFrameworks>
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+  </PropertyGroup>
+
+  <!-- Live MCP-server integration tiers. This project deliberately does NOT reference the analyzer:
+       it boots the poisoned fixtures as real in-process servers to prove the payload reaches a client
+       (Tier 3) and to demonstrate the runtime rug-pull (Tier 4). The build-time catch is proven by the
+       analyzer test project. -->
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="xunit" />
+    <PackageReference Include="xunit.runner.visualstudio" />
+    <PackageReference Include="coverlet.collector" />
+    <PackageReference Include="ModelContextProtocol" />
+    <PackageReference Include="McpServerFactory" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Using Include="Xunit" />
+  </ItemGroup>
+
+</Project>

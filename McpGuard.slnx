@@ -5,6 +5,7 @@
   </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/McpGuard.Analyzers.Tests/McpGuard.Analyzers.Tests.csproj" />
+    <Project Path="tests/McpGuard.IntegrationTests/McpGuard.IntegrationTests.csproj" />
   </Folder>
   <Folder Name="/samples/">
     <Project Path="samples/PoisonedServer/PoisonedServer.csproj" />

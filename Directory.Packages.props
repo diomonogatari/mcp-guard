@@ -22,6 +22,11 @@
     <!-- MCP C# SDK — referenced by the poisoned sample for the [McpServerTool] attributes only. -->
     <PackageVersion Include="ModelContextProtocol" Version="1.4.0" />
 
+    <!-- In-process MCP server harness for the live integration tiers (round-trip authenticity +
+         runtime rug-pull demonstration). Pinned to the same MCP SDK 1.4.0 as the analyzer's sample. -->
+    <PackageVersion Include="McpServerFactory" Version="1.0.0" />
+    <PackageVersion Include="McpServerFactory.Xunit" Version="1.0.0" />
+
     <!-- Test stack (matches the sibling repos). -->
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.14.1" />
     <PackageVersion Include="xunit" Version="2.9.3" />
