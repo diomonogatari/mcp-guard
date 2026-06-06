@@ -9,7 +9,7 @@ internal static class DiagnosticIds
     /// <summary>Prefix shared by every mcp-guard diagnostic id.</summary>
     public const string Prefix = "MCPG";
 
-    /// <summary>Prompt-injection / instruction-style phrasing embedded in an MCP tool description.</summary>
+    /// <summary>Prompt-injection / instruction-override phrasing embedded in an MCP tool description.</summary>
     public const string PromptInjectionInDescription = "MCPG001";
 
     /// <summary>Hidden / non-printable Unicode (zero-width, bidi controls, BOM, tag chars) in an MCP tool description.</summary>
@@ -18,9 +18,12 @@ internal static class DiagnosticIds
     /// <summary>Sensitive credential / secret-file reference inside an MCP tool description.</summary>
     public const string SecretReferenceInDescription = "MCPG003";
 
-    /// <summary>Data-exfiltration directive (transmit sensitive data to an external destination) in a description.</summary>
+    /// <summary>Data-exfiltration directive or sink (external destination) in a description.</summary>
     public const string ExfiltrationInDescription = "MCPG004";
 
     /// <summary>ANSI / terminal escape sequence (ESC, U+001B) inside an MCP tool description.</summary>
     public const string AnsiEscapeInDescription = "MCPG005";
+
+    /// <summary>Manipulative / authority phrasing (coercion, suppressing other tools) in a description.</summary>
+    public const string ManipulativePhrasingInDescription = "MCPG006";
 }
