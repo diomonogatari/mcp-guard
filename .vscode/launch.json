@@ -1,0 +1,17 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Run poisoned sample (net10.0)",
+      "detail": "Builds the poisoned sample (running mcp-guard over it) and runs it.",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "build sample (show findings)",
+      "program": "${workspaceFolder}/samples/PoisonedServer/bin/Debug/net10.0/PoisonedServer.dll",
+      "args": [],
+      "cwd": "${workspaceFolder}/samples/PoisonedServer",
+      "console": "internalConsole",
+      "stopAtEntry": false
+    }
+  ]
+}

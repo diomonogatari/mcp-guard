@@ -1,0 +1,56 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "build",
+      "detail": "dotnet build the solution",
+      "command": "dotnet",
+      "type": "process",
+      "args": [ "build", "${workspaceFolder}/McpGuard.slnx" ],
+      "problemMatcher": "$msCompile",
+      "group": { "kind": "build", "isDefault": true }
+    },
+    {
+      "label": "test",
+      "detail": "dotnet test the solution (net8 + net10)",
+      "command": "dotnet",
+      "type": "process",
+      "args": [ "test", "${workspaceFolder}/McpGuard.slnx" ],
+      "problemMatcher": "$msCompile",
+      "group": { "kind": "test", "isDefault": true }
+    },
+    {
+      "label": "format",
+      "detail": "apply dotnet format (whitespace + style)",
+      "command": "bash",
+      "type": "process",
+      "args": [ "${workspaceFolder}/scripts/verify-format.sh", "--fix" ],
+      "problemMatcher": []
+    },
+    {
+      "label": "build sample (show findings)",
+      "detail": "build the poisoned sample so mcp-guard's MCPGxxx warnings appear in Problems",
+      "command": "dotnet",
+      "type": "process",
+      "args": [
+        "build",
+        "${workspaceFolder}/samples/PoisonedServer/PoisonedServer.csproj",
+        "--no-incremental"
+      ],
+      "problemMatcher": "$msCompile"
+    },
+    {
+      "label": "pack analyzer",
+      "detail": "pack McpGuard.Analyzers into ./artifacts",
+      "command": "dotnet",
+      "type": "process",
+      "args": [
+        "pack",
+        "${workspaceFolder}/src/McpGuard.Analyzers/McpGuard.Analyzers.csproj",
+        "-c", "Release",
+        "-o", "${workspaceFolder}/artifacts"
+      ],
+      "problemMatcher": "$msCompile"
+    }
+  ]
+}

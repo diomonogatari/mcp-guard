@@ -3,6 +3,7 @@
   <PropertyGroup>
     <!-- Multi-targets both supported runtimes so the analyzer is exercised on net8.0 and net10.0. -->
     <TargetFrameworks>net8.0;net10.0</TargetFrameworks>
+    <OutputType>Exe</OutputType>
     <IsPackable>false</IsPackable>
 
     <!-- Poisoned ON PURPOSE: mcp-guard SHOULD light up here. Its findings must not fail this build,
