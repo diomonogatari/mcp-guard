@@ -10,7 +10,7 @@ Reference the analyzer in the project you want gated:
 
 ```xml
 <ItemGroup>
-  <PackageReference Include="McpGuard.Analyzers" Version="1.0.0" PrivateAssets="all" />
+  <PackageReference Include="McpGuard.Analyzers" Version="0.1.0" PrivateAssets="all" />
 </ItemGroup>
 ```
 

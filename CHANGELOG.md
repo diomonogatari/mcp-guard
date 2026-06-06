@@ -6,6 +6,37 @@ All notable changes to mcp-guard are documented here. The format is based on
 
 ## [Unreleased]
 
+Heading toward 1.0: the full static rule catalog, a confirmed-payload escalation, the
+description-integrity baseline, code fixes, and a reusable CI gate. The 1.0.0 release is gated on the
+known-attack corpus test suite landing.
+
+### Added
+
+- **Rules MCPG003–MCPG011** completing the static catalog: secret-file references (003), exfiltration
+  directives and markdown image/data-link sinks (004), ANSI/terminal-escape sequences (005), manipulative
+  or authority phrasing (006), capability⇄description mismatch (007, Info), embedded instruction markup
+  (008), cross-tool / tool-shadowing references (009), off-screen whitespace padding (010), and encoded
+  payload blobs (011, Info).
+- **MCPG012** — multi-signal escalation: a secret reference *and* an external sink on one description is a
+  confirmed exfiltration payload, reported at **Error** so it fails the build.
+- **MCPG013** — the description-integrity baseline (rug-pull guard): pin each tool description's raw-byte
+  fingerprint in a committed `McpGuard.Baseline.txt` (an `AdditionalFiles`) and flag any later drift.
+  Opt-in and inert until the baseline file exists.
+- **Code fixes** — strip hidden characters (002), remove ANSI escape sequences (005), collapse whitespace
+  padding (010), and update the integrity baseline (013).
+- **Reusable GitHub Action** (`action.yml`) plus [docs/CI.md](docs/CI.md) to gate any consumer's CI on
+  findings; VS Code `tasks.json` / `launch.json` and a runnable poisoned sample server.
+
+### Changed
+
+- **Full metadata-surface coverage** — every detector now runs on parameter `[Description]`s, tool `Name`
+  strings, and `[McpServerResource]` / `[McpServerPrompt]` / `[McpServer*Type]` descriptions, not just the
+  method `[Description]`.
+- **MCPG002 hardening** (ZWJ allow-listing, variation-selector runs, decode-and-show), **MCPG004** markdown
+  sinks, and **MCPG005** sequence-aware CSI/OSC detection.
+- Findings now squiggle the precise offending phrase rather than the whole literal, with a help link in
+  the tooltip.
+
 ## [0.1.0] - 2026-06-05
 
 ### Added

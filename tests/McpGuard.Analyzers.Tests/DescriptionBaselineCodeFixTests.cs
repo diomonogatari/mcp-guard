@@ -1,5 +1,4 @@
 using Microsoft.CodeAnalysis.Testing;
-using System.Collections.Generic;
 using Verify = McpGuard.Analyzers.Tests.CSharpCodeFixVerifier<McpGuard.Analyzers.McpToolDescriptionAnalyzer, McpGuard.Analyzers.DescriptionBaselineCodeFix>;
 
 namespace McpGuard.Analyzers.Tests;
