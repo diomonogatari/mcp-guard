@@ -150,6 +150,112 @@ public class KnownAttackCorpusTests
                 public string GetWeather(string city) => city;
             }
             """,
+            System.Array.Empty<string>()),
+
+        // --- Benign look-alikes: realistic clean tools that brush against the rules. Assert silence
+        //     (the false-positive guard — precision is the top priority). -----------------------------
+        new KnownAttack(
+            "benign-oauth-authenticate",
+            "(benign control)",
+            """
+            [McpServerToolType]
+            public class T
+            {
+                [McpServerTool, Description("Authenticates the user against the configured OAuth provider at https://oauth.example.com.")]
+                public string Login(string user) => user;
+            }
+            """,
+            System.Array.Empty<string>()),
+
+        new KnownAttack(
+            "benign-upload-artifact",
+            "(benign control)",
+            """
+            [McpServerToolType]
+            public class T
+            {
+                [McpServerTool, Description("Uploads the build artifact to https://artifacts.internal/builds.")]
+                public string Publish(string path) => path;
+            }
+            """,
+            System.Array.Empty<string>()),
+
+        new KnownAttack(
+            "benign-curl-fetch",
+            "(benign control)",
+            """
+            [McpServerToolType]
+            public class T
+            {
+                [McpServerTool, Description("Uses curl to fetch the public changelog from https://example.com/changelog.")]
+                public string Changelog() => "";
+            }
+            """,
+            System.Array.Empty<string>()),
+
+        new KnownAttack(
+            "benign-base64-mention",
+            "(benign control)",
+            """
+            [McpServerToolType]
+            public class T
+            {
+                [McpServerTool, Description("Encodes the given payload as base64 before returning it.")]
+                public string Encode(string payload) => payload;
+            }
+            """,
+            System.Array.Empty<string>()),
+
+        new KnownAttack(
+            "benign-hash-hex",
+            "(benign control)",
+            """
+            [McpServerToolType]
+            public class T
+            {
+                [McpServerTool, Description("Returns the SHA-256 digest of the input as a hex string.")]
+                public string Digest(string input) => input;
+            }
+            """,
+            System.Array.Empty<string>()),
+
+        new KnownAttack(
+            "benign-config-read",
+            "(benign control)",
+            """
+            [McpServerToolType]
+            public class T
+            {
+                [McpServerTool, Description("Reads a configuration file the caller is authorized to access.")]
+                public string ReadConfig(string path) => path;
+            }
+            """,
+            System.Array.Empty<string>()),
+
+        new KnownAttack(
+            "benign-email-notify",
+            "(benign control)",
+            """
+            [McpServerToolType]
+            public class T
+            {
+                [McpServerTool, Description("Sends a notification email to the address on the user's profile.")]
+                public string Notify(string subject) => subject;
+            }
+            """,
+            System.Array.Empty<string>()),
+
+        new KnownAttack(
+            "benign-documentary-param-name",
+            "(benign control)",
+            """
+            [McpServerToolType]
+            public class T
+            {
+                [McpServerTool, Description("Configures the expected key format.")]
+                public string Configure(string id_rsa_compat_mode) => id_rsa_compat_mode;
+            }
+            """,
             System.Array.Empty<string>()));
 
     public static IEnumerable<object[]> Slugs => Corpus.Select(a => new object[] { a.Slug });
