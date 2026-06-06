@@ -29,4 +29,7 @@ internal static class DiagnosticIds
 
     /// <summary>Embedded instruction markup (HTML comments, fake system tags) in a description.</summary>
     public const string EmbeddedMarkupInDescription = "MCPG008";
+
+    /// <summary>Cross-tool / tool-shadowing references (influencing other tools) in a description.</summary>
+    public const string CrossToolReferenceInDescription = "MCPG009";
 }
