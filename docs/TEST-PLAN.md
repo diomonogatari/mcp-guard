@@ -160,45 +160,33 @@ cover. Resolutions:
 
 ---
 
-## Scorecard & MCPTox coverage eval (scheduled, not PR)
+## Coverage scorecard
 
-> **Status: blocked on dataset access.** The in-repo corpus (9 known attacks + 8 benign controls,
-> `KnownAttackCorpusTests`) is the coverage-and-precision story for 1.0. The larger external MCPTox recall
-> metric is deferred: its dataset lives behind `anonymous.4open.science` (bot-blocked) with an unconfirmed
-> license, so it cannot be vendored or fetched in CI until the source/license is confirmed.
+The coverage-and-precision story is the in-repo [known-attack corpus](../tests/McpGuard.Analyzers.Tests/KnownAttackCorpusTests.cs)
+— 9 PoC attacks (each asserting its exact rule set), 6 runtime-only boundary cases (asserting silence),
+and 8 benign look-alike controls (asserting zero false positives) — plus the live tiers. It is summarized
+for consumers in [SCORECARD.md](SCORECARD.md), framed against **MCP-38 Category I** (≈ MCP-10/11/13/15 +
+MCP-16 rug-pull) and **OWASP MCP03**, not all 38 / all 10.
 
-A separate, **scheduled** job (not the fast PR suite) that reports a coverage **percentage**:
-
-- **MCPTox** (arXiv 2508.14925): 1,312 cases, **~100% description-resident**, single-turn; paradigms
-  P1 (224) / P2 (548) / P3 (725). The malicious content is plain description text → mechanically
-  ingestible.
-- **DECISION S1 — rule core vs synthetic stubs.** Either (a) extract a pure `string → Finding[]` rule
-  core callable directly on each payload (cleaner, but a refactor of the rules off `SyntaxNodeAnalysisContext`),
-  or (b) wrap each payload into a synthetic `[McpServerTool, Description("…")]` stub and run the real
-  analyzer (no refactor, but watch C# string escaping of the payloads). *Recommendation: (b) for the MVP,
-  with a small sample through the real Roslyn path; consider (a) later.*
-- **Measure recall** (every MCPTox case is malicious) and **pair with a benign corpus** (authentic tool
-  descriptions) for precision/FPR — a "100%" recall via an over-eager rule is meaningless without it.
-- **Honesty caveats:** do **not** vendor MCPTox (the dataset is behind `anonymous.4open.science`, blocks
-  bots, **license unconfirmed**) — fetch out-of-band, record the version hash. Label the metric precisely:
-  *"MCPTox description-resident tool-poisoning recall,"* not "MCP security coverage." Frame the ceiling
-  against **MCP-38 Category I** (≈ MCP-10/11/13/15 + MCP-16 rug-pull) and **OWASP MCP03**, not all 38 / all 10.
+> **External benchmark (MCPTox): not pursued.** A large external recall metric (e.g. MCPTox,
+> arXiv 2508.14925) was considered but dropped — its dataset is behind a bot-blocked host with an
+> unconfirmed license, so it cannot be vendored or run in CI. The in-repo corpus above is the coverage
+> story; revisit only if a usable, licensed source appears.
 
 ---
 
 ## CI wiring & sequencing
 
 - **Every PR (fast):** Tier 1 + Tier 2 (static, in-memory compile). Fail the build on any regression.
-- **Scheduled / heavier:** Tier 3 + Tier 4 (boot servers) + MCPTox coverage; regenerate and publish the
-  scorecard. Gating before release.
+- **Every PR (also fast, in-process):** Tier 3 + Tier 4 boot servers but complete in well under a second,
+  so they run in the standard suite rather than a separate scheduled job.
 
-**Sequence:**
-1. Tier 1 + Tier 2 for the deterministic core (MCPG001/002/003/005/008) — proves the rules and the corpus
-   data format end-to-end.
-2. Resolve **G1 / G2** (close or document) — they change which corpus rows are green.
-3. Stand up `McpGuard.IntegrationTests` + Tier 3, turn the corpus into the scorecard.
+**Sequence (done):**
+1. Tier 1 + Tier 2 for the deterministic core — proves the rules and the corpus data format end-to-end.
+2. Resolve **G1 / G2** — they changed which corpus rows are green.
+3. Stand up `McpGuard.IntegrationTests` + Tier 3 round-trip authenticity.
 4. Tier 4 rug-pull demonstration alongside the MCPG013 story.
-5. MCPTox coverage job last, as a published percentage.
+5. Adversarial review + precision/bypass hardening + benign controls.
 6. Then cut 1.0.0.
 
 ---
