@@ -125,7 +125,7 @@ public class McpToolDescriptionAnalyzerTests
             }
             """);
 
-        DiagnosticResult expected = Verify.Diagnostic(MCPG002).WithLocation(0).WithArguments("200B");
+        DiagnosticResult expected = Verify.Diagnostic(MCPG002).WithLocation(0).WithArguments("a hidden or non-printable character (U+200B)");
         await Verify.VerifyAsync(source, ReferenceFor(targetFramework), expected);
     }
 
@@ -143,7 +143,7 @@ public class McpToolDescriptionAnalyzerTests
             }
             """);
 
-        DiagnosticResult expected = Verify.Diagnostic(MCPG002).WithLocation(0).WithArguments("202E");
+        DiagnosticResult expected = Verify.Diagnostic(MCPG002).WithLocation(0).WithArguments("a hidden or non-printable character (U+202E)");
         await Verify.VerifyAsync(source, ReferenceAssemblies.Net.Net100, expected);
     }
 

@@ -9,20 +9,20 @@ internal sealed class HiddenTextRule : McpDescriptionRule
     private static readonly DiagnosticDescriptor Rule = new(
         id: DiagnosticIds.HiddenTextInDescription,
         title: "MCP tool description contains hidden or non-printable characters",
-        messageFormat: "MCP tool description contains a hidden or non-printable character (U+{0}); invisible text can smuggle instructions past human review and should be removed",
+        messageFormat: "MCP tool description contains {0}; invisible content can smuggle instructions past human review and should be removed",
         category: RuleMetadata.SecurityCategory,
         defaultSeverity: DiagnosticSeverity.Warning,
         isEnabledByDefault: true,
-        description: "Zero-width, bidirectional-control, byte-order-mark, and other invisible Unicode characters have no place in a tool description. They are a known vector for hiding instructions a human reviewer cannot see but an LLM still reads.",
+        description: "Zero-width, bidirectional-control, byte-order-mark, Unicode-tag, and other invisible characters have no place in a tool description. They are a known vector for hiding instructions a human reviewer cannot see but an LLM still reads. ZWJ / ZWNJ (legitimate in emoji and Indic scripts) and ESC (handled by MCPG005) are excluded.",
         helpLinkUri: RuleMetadata.HelpUri(DiagnosticIds.HiddenTextInDescription));
 
     public override DiagnosticDescriptor Descriptor => Rule;
 
     public override void Analyze(in McpDescription description, SyntaxNodeAnalysisContext context)
     {
-        if (HiddenCharacters.TryFind(description.Text, out int codePoint))
+        if (HiddenCharacters.TryFind(description.Text, out string detail))
         {
-            context.ReportDiagnostic(Diagnostic.Create(Rule, description.Location, codePoint.ToString("X4")));
+            context.ReportDiagnostic(Diagnostic.Create(Rule, description.Location, detail));
         }
     }
 }

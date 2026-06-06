@@ -106,7 +106,7 @@ public class SurfaceCoverageTests
             }
             """);
 
-        DiagnosticResult expected = Verify.Diagnostic(MCPG002).WithLocation(0).WithArguments("200B");
+        DiagnosticResult expected = Verify.Diagnostic(MCPG002).WithLocation(0).WithArguments("a hidden or non-printable character (U+200B)");
         await Verify.VerifyAsync(source, ReferenceFor(targetFramework), expected);
     }
 

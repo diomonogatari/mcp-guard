@@ -50,7 +50,7 @@ public class DescriptionEngineTests
             }
             """);
 
-        DiagnosticResult expected = Verify.Diagnostic(MCPG002).WithLocation(0).WithArguments("0007");
+        DiagnosticResult expected = Verify.Diagnostic(MCPG002).WithLocation(0).WithArguments("a hidden or non-printable character (U+0007)");
         await Verify.VerifyAsync(source, ReferenceFor("net10.0"), expected);
     }
 
@@ -67,7 +67,7 @@ public class DescriptionEngineTests
             }
             """);
 
-        DiagnosticResult expected = Verify.Diagnostic(MCPG002).WithLocation(0).WithArguments("E0001");
+        DiagnosticResult expected = Verify.Diagnostic(MCPG002).WithLocation(0).WithArguments("a hidden Unicode tag character");
         await Verify.VerifyAsync(source, ReferenceFor("net10.0"), expected);
     }
 

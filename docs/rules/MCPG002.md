@@ -20,15 +20,18 @@ known smuggling vector: a human reviewing the source (or the rendered tool list)
 while the model receives extra characters that can carry or obscure instructions. Bidirectional
 overrides can even make displayed text read differently from its logical order.
 
-MCPG002 flags any character in the Unicode **Format** category (`Cf`) — including:
+MCPG002 flags invisible / non-printable content — including:
 
-- zero-width space `U+200B`, zero-width non-joiner `U+200C`, zero-width joiner `U+200D`
-- word joiner `U+2060`, byte-order mark / zero-width no-break space `U+FEFF`
-- soft hyphen `U+00AD`
+- zero-width space `U+200B`, word joiner `U+2060`, byte-order mark `U+FEFF`, soft hyphen `U+00AD`
 - bidirectional controls `U+202A`–`U+202E`, `U+2066`–`U+2069`
-- the Unicode tag block `U+E0000`–`U+E007F`
+- the Unicode **tag** block `U+E0000`–`U+E007F` — and the hidden ASCII it carries is **decoded into the
+  diagnostic message** (e.g. *…that reads "Ignore previous instructions"*)
+- **runs** of variation selectors (`U+FE00`–`U+FE0F`, `U+E0100`–`U+E01EF`) used for byte-smuggling
+- any **Control** character (`Cc`) other than ordinary whitespace (tab, newline, carriage return)
 
-and any **Control** character (`Cc`) other than ordinary whitespace (tab, newline, carriage return).
+To stay precise it does **not** flag two legitimate cases: a lone zero-width joiner / non-joiner
+(`U+200D` / `U+200C`, used in emoji ZWJ sequences and Indic scripts) or a single variation selector
+(emoji styling). `ESC` (`U+001B`) is handled by [MCPG005](MCPG005.md).
 
 ## How to fix violations
 
