@@ -3,6 +3,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Immutable;
 using System.Linq;
 
@@ -18,12 +19,17 @@ namespace McpGuard.Analyzers;
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public sealed class McpToolDescriptionAnalyzer : DiagnosticAnalyzer
 {
+    // Held by reference so the encoded-blob escalation (G2) can reuse their MCPG003/MCPG004 descriptors
+    // when a payload is found only after decoding an embedded blob.
+    private static readonly SecretReferenceRule SecretRule = new();
+    private static readonly ExfiltrationRule SinkRule = new();
+
     private static readonly ImmutableArray<McpDescriptionRule> RuleSet =
         ImmutableArray.Create<McpDescriptionRule>(
             new PromptInjectionRule(),
             new HiddenTextRule(),
-            new SecretReferenceRule(),
-            new ExfiltrationRule(),
+            SecretRule,
+            SinkRule,
             new AnsiEscapeRule(),
             new ManipulativePhrasingRule(),
             new EmbeddedMarkupRule(),
@@ -90,11 +96,17 @@ public sealed class McpToolDescriptionAnalyzer : DiagnosticAnalyzer
         context.RegisterCompilationStartAction(static start =>
         {
             DescriptionBaseline baseline = DescriptionBaseline.Load(start.Options.AdditionalFiles, start.CancellationToken);
-            start.RegisterSyntaxNodeAction(ctx => AnalyzeAttribute(ctx, baseline), SyntaxKind.Attribute);
+            // Each enum used as a tool parameter type is scanned once per compilation, no matter how many
+            // tools share it, so its members are not reported twice.
+            var scannedEnums = new ConcurrentDictionary<ITypeSymbol, byte>(SymbolEqualityComparer.Default);
+            start.RegisterSyntaxNodeAction(ctx => AnalyzeAttribute(ctx, baseline, scannedEnums), SyntaxKind.Attribute);
         });
     }
 
-    private static void AnalyzeAttribute(SyntaxNodeAnalysisContext context, DescriptionBaseline baseline)
+    private static void AnalyzeAttribute(
+        SyntaxNodeAnalysisContext context,
+        DescriptionBaseline baseline,
+        ConcurrentDictionary<ITypeSymbol, byte> scannedEnums)
     {
         var attribute = (AttributeSyntax)context.Node;
         string name = GetSimpleName(attribute.Name);
@@ -116,11 +128,61 @@ public sealed class McpToolDescriptionAnalyzer : DiagnosticAnalyzer
             return;
         }
 
-        // The Name = "..." of an MCP member attribute is also model-visible.
-        if (McpMemberAttributeNames.Contains(name)
-            && McpDescriptionExtractor.TryGetToolName(attribute, context.SemanticModel, context.CancellationToken, out McpDescription toolName))
+        // An MCP member attribute: the Name = "..." is model-visible, and so are the names of its
+        // parameters (JSON-schema property keys) and any enum-typed parameter's members.
+        if (McpMemberAttributeNames.Contains(name))
         {
-            RunRules(in toolName, context);
+            if (McpDescriptionExtractor.TryGetToolName(attribute, context.SemanticModel, context.CancellationToken, out McpDescription toolName))
+            {
+                RunRules(in toolName, context);
+            }
+
+            ScanMemberNames(attribute, context, scannedEnums);
+        }
+    }
+
+    // Scans the identifier names the model also sees for an MCP member: each parameter name, and the
+    // member names of any enum used as a parameter type.
+    private static void ScanMemberNames(
+        AttributeSyntax memberAttribute,
+        SyntaxNodeAnalysisContext context,
+        ConcurrentDictionary<ITypeSymbol, byte> scannedEnums)
+    {
+        if (memberAttribute.Parent is not AttributeListSyntax { Parent: MethodDeclarationSyntax method })
+        {
+            return;
+        }
+
+        foreach (ParameterSyntax parameter in method.ParameterList.Parameters)
+        {
+            McpDescription paramName = McpDescription.FromToken(parameter.Identifier, McpDescriptionTarget.ParameterName);
+            RunRules(in paramName, context);
+
+            if (context.SemanticModel.GetDeclaredSymbol(parameter, context.CancellationToken) is { Type: { TypeKind: TypeKind.Enum } enumType }
+                && scannedEnums.TryAdd(enumType, 0))
+            {
+                ScanEnumMemberNames(enumType, context);
+            }
+        }
+    }
+
+    private static void ScanEnumMemberNames(ITypeSymbol enumType, SyntaxNodeAnalysisContext context)
+    {
+        foreach (ISymbol member in enumType.GetMembers())
+        {
+            if (member is not IFieldSymbol { IsConst: true } field)
+            {
+                continue;
+            }
+
+            foreach (SyntaxReference reference in field.DeclaringSyntaxReferences)
+            {
+                if (reference.GetSyntax(context.CancellationToken) is EnumMemberDeclarationSyntax declaration)
+                {
+                    McpDescription memberName = McpDescription.FromToken(declaration.Identifier, McpDescriptionTarget.EnumMemberName);
+                    RunRules(in memberName, context);
+                }
+            }
         }
     }
 
@@ -131,8 +193,30 @@ public sealed class McpToolDescriptionAnalyzer : DiagnosticAnalyzer
             rule.Analyze(in description, context);
         }
 
+        string text = description.Text;
+        bool secret = SecretArtifacts.TryFind(text, out _);
+        bool sink = ExfiltrationCues.TryFindSink(text, out _);
+
+        // A secret reference or exfil sink can be hidden inside an encoded blob (the blob alone is only
+        // MCPG011 Info). Decode it and re-scan; a hit is reported with the MCPG003/MCPG004 descriptor at
+        // the blob and counts toward the escalation below.
+        if (EncodedBlob.TryFind(text, out string blob) && EncodedBlob.TryDecode(blob, out string decoded))
+        {
+            if (!secret && SecretArtifacts.TryFind(decoded, out string secretMatch))
+            {
+                secret = true;
+                context.ReportDiagnostic(Diagnostic.Create(SecretRule.Descriptor, description.LocationOf(blob), secretMatch));
+            }
+
+            if (!sink && ExfiltrationCues.TryFindSink(decoded, out string channel))
+            {
+                sink = true;
+                context.ReportDiagnostic(Diagnostic.Create(SinkRule.Descriptor, description.LocationOf(blob), channel));
+            }
+        }
+
         // Multi-signal escalation: a secret reference plus an external sink is a confirmed payload.
-        if (SecretArtifacts.TryFind(description.Text, out _) && ExfiltrationCues.TryFindSink(description.Text, out _))
+        if (secret && sink)
         {
             context.ReportDiagnostic(Diagnostic.Create(ConfirmedExfiltration, description.Location));
         }

@@ -62,7 +62,7 @@ internal static class McpDescriptionExtractor
             return false;
         }
 
-        description = new McpDescription(text, expression, target);
+        description = McpDescription.FromExpression(text, expression, target);
         return true;
     }
 }

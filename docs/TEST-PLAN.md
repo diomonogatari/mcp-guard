@@ -131,25 +131,24 @@ So Tier 4 has two coherent halves:
 
 ---
 
-## Known gaps surfaced by the corpus — **DECISIONS**
+## Known gaps surfaced by the corpus — **RESOLVED**
 
-The corpus (CyberArk FSP + MCPTox MCP-11) exposes statically-catchable surfaces the analyzer does not yet
-cover. Each is a fork: **close before 1.0** (new detection) or **document as scope boundary** (negative
-test).
+The corpus (CyberArk FSP + MCPTox MCP-11) exposed statically-catchable surfaces the analyzer did not
+cover. Resolutions:
 
-- **DECISION G1 — parameter / enum-member NAMES.** A payload smuggled into an identifier
-  (`content_from_reading_ssh_id_rsa`) or an enum-member `[Description]` is statically present but
-  **unscanned**. Closing it means extending `GetSurfaceTarget` to parameter names and enum members and
-  running the existing rules over them. *Recommendation: close — it is high-value, in-domain, and matches
-  "full metadata-surface coverage."*
-- **DECISION G2 — encoded-blob decode-then-rescan.** A base64 blob hiding `cat ~/.ssh/* … wget http://…`
-  trips only **MCPG011 (Info)**; the secret/sink inside it evade MCPG003/004/012. Closing it means
-  decoding suspected blobs and re-running MCPG003/004. *Recommendation: close as a focused enhancement —
-  it is the difference between Info and a build-breaking Error on a real exfil payload.*
-- **DECISION G3 — non-standard schema fields (CyberArk "extra field").** The analyzer reads C# attributes,
-  not the emitted JSON schema, so an `extra`/`note` schema field is **invisible** by design. *Recommendation:
-  document as out-of-scope (it needs schema-level inspection, not attribute scanning) unless a custom
-  schema-attribute convention is in scope.*
+- **G1 — parameter / enum-member NAMES — CLOSED.** The analyzer now scans each parameter identifier and
+  the member names of an enum used as a tool parameter type, running the existing rules over them, so a
+  payload smuggled into `content_from_reading_ssh_id_rsa` trips MCPG003. (Enum member iteration is
+  deduplicated per compilation.) Covered by `ParameterAndEnumNameTests`.
+- **G2 — encoded-blob decode-then-rescan — CLOSED.** A base64 blob that decodes to readable text is
+  re-scanned for a secret (MCPG003) and a sink (MCPG004); the combination escalates to MCPG012 (Error)
+  instead of hiding behind advisory MCPG011. `curl`/`wget` were added to the transmit verbs so the
+  canonical `cat ~/.ssh/* | wget http://…` is recognized once decoded. Covered by
+  `EncodedBlobEscalationTests`.
+- **G3 — non-standard schema fields (CyberArk "extra field") — DOCUMENTED as out-of-scope.** The analyzer
+  reads C# attributes, not the emitted JSON schema, so an `extra`/`note` schema field is invisible by
+  design. Recorded as a boundary in the [threat model](THREAT-MODEL.md); corpus row 11 is a negative-scope
+  test.
 
 ---
 

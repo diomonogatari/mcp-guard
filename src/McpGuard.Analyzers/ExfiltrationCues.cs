@@ -22,6 +22,11 @@ internal static class ExfiltrationCues
         "exfiltrate",
         "forward",
         "email",
+        // Data-transfer commands — the verb of choice once a payload is decoded out of an encoded blob.
+        // Still gated by the external-destination + sensitivity signals, so a benign "curl the public
+        // API" is not flagged.
+        "curl",
+        "wget",
     };
 
     private static readonly string[] ExternalDestinations =

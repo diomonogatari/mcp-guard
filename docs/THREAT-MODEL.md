@@ -46,5 +46,9 @@ runtime / proxy tooling and are explicitly **not** covered:
 - **Cross-server confused deputy / toxic-flow** analysis.
 - **Live typosquatting** against the registry.
 - **Actual network exfiltration** — observable only at runtime.
+- **Full-schema poisoning via non-standard schema fields** — a payload placed in an undeclared
+  JSON-schema field (a CyberArk-style `extra`/`note` field) rather than a `[Description]` or `Name`.
+  mcp-guard scans C# attributes, not the emitted JSON schema, so arbitrary schema fields are not visible
+  to it. (Payloads in parameter/enum **names** *are* covered — see [MCPG003](rules/MCPG003.md).)
 
 mcp-guard catches the poison *before it ships*; pair it with runtime defenses for the rest.

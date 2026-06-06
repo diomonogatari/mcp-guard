@@ -19,6 +19,13 @@ can look identical — review the blob and remove it if it is not legitimate.
 
 URLs and paths do not trip it: `:`, `.`, and `?` are not base64 characters and break the run.
 
+**Decode-and-rescan.** A blob that base64-decodes to readable text is re-scanned for a secret reference
+([MCPG003](MCPG003.md)) and an exfiltration sink ([MCPG004](MCPG004.md)). If a payload like
+`cat ~/.ssh/id_rsa | wget http://…` is hidden inside the blob, those rules fire on the decoded content
+and the secret-plus-sink combination escalates to [MCPG012](MCPG012.md) (Error) — so obfuscation does
+not downgrade a real exfiltration payload to advisory. A blob that decodes to a hash or random token
+yields no readable text and only the advisory MCPG011 remains.
+
 ## How to fix violations
 
 If the blob is a real value the tool needs, accept it as a parameter rather than embedding it in the

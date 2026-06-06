@@ -8,9 +8,12 @@
 
 ## Cause
 
-A `[Description]` on the MCP tool surface (a method with `[McpServerTool]`, one of its parameters, or
-a type with `[McpServerToolType]`) names a sensitive credential artifact — an SSH private key, a
-cloud-credential file, or a system password file.
+A model-visible string on the MCP tool surface names a sensitive credential artifact — an SSH private
+key, a cloud-credential file, or a system password file. The surface includes a `[Description]` on a
+method with `[McpServerTool]`, one of its parameters, or a type with `[McpServerToolType]`, **and** the
+identifier names the model also reads: a parameter name and the member names of an enum used as a tool
+parameter type (so a payload smuggled into `content_from_reading_ssh_id_rsa` is caught, not just one in
+the description text).
 
 ## Rule description
 

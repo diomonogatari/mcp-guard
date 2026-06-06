@@ -19,42 +19,70 @@ internal enum McpDescriptionTarget
 
     /// <summary>The <c>Name = "..."</c> argument of an MCP member attribute.</summary>
     Name,
+
+    /// <summary>The identifier name of a parameter of an MCP member method (a JSON-schema property key).</summary>
+    ParameterName,
+
+    /// <summary>The identifier name of a member of an enum used as an MCP tool parameter type.</summary>
+    EnumMemberName,
 }
 
 /// <summary>
-/// An extracted MCP surface string: the text the model reads, the literal it came from (so findings
-/// can be reported at the precise offending span), and which part of the surface it is.
+/// An extracted MCP surface string: the text the model reads, the source span it came from (so findings
+/// can be reported at the precise offending substring), and which part of the surface it is. The source
+/// can be a string-literal expression (a <c>[Description]</c> / <c>Name=</c> value) or an identifier
+/// token (a parameter or enum-member name).
 /// </summary>
-internal readonly struct McpDescription(string text, ExpressionSyntax expression, McpDescriptionTarget target)
+internal readonly struct McpDescription
 {
+    private readonly Location _location;
+    private readonly SyntaxTree? _tree;
+    private readonly int _spanStart;
+    private readonly string _source;
+
+    private McpDescription(string text, McpDescriptionTarget target, Location location, SyntaxTree? tree, int spanStart, string source)
+    {
+        Text = text;
+        Target = target;
+        _location = location;
+        _tree = tree;
+        _spanStart = spanStart;
+        _source = source;
+    }
+
     /// <summary>The text, as the model would read it.</summary>
-    public string Text { get; } = text;
+    public string Text { get; }
 
     /// <summary>The part of the MCP surface this text came from.</summary>
-    public McpDescriptionTarget Target { get; } = target;
+    public McpDescriptionTarget Target { get; }
 
-    private ExpressionSyntax Expression { get; } = expression;
+    /// <summary>Builds a description from a string-literal expression (a [Description] / Name= value).</summary>
+    public static McpDescription FromExpression(string text, ExpressionSyntax expression, McpDescriptionTarget target)
+        => new(text, target, expression.GetLocation(), expression.SyntaxTree, expression.SpanStart, expression.ToString());
 
-    /// <summary>The whole string-literal location — used when a finding cannot be pinpointed.</summary>
-    public Location Location => Expression.GetLocation();
+    /// <summary>Builds a description from an identifier token (a parameter or enum-member name).</summary>
+    public static McpDescription FromToken(SyntaxToken token, McpDescriptionTarget target)
+        => new(token.ValueText, target, token.GetLocation(), token.SyntaxTree, token.SpanStart, token.Text);
+
+    /// <summary>The whole source-span location — used when a finding cannot be pinpointed.</summary>
+    public Location Location => _location;
 
     /// <summary>
     /// Best-effort precise location for a finding: the span of <paramref name="rawMatch"/> within the
-    /// literal's source text, or the whole literal if it is not a verbatim substring (e.g. a phrase
-    /// that only matches after whitespace normalization).
+    /// source text, or the whole span if it is not a verbatim substring (e.g. a phrase that only matches
+    /// after whitespace normalization, or content found only after decoding an embedded blob).
     /// </summary>
     public Location LocationOf(string rawMatch)
     {
-        if (!string.IsNullOrEmpty(rawMatch))
+        if (!string.IsNullOrEmpty(rawMatch) && _tree is not null)
         {
-            string source = Expression.ToString();
-            int index = source.IndexOf(rawMatch, StringComparison.OrdinalIgnoreCase);
+            int index = _source.IndexOf(rawMatch, StringComparison.OrdinalIgnoreCase);
             if (index >= 0)
             {
-                return Location.Create(Expression.SyntaxTree, new TextSpan(Expression.SpanStart + index, rawMatch.Length));
+                return Location.Create(_tree, new TextSpan(_spanStart + index, rawMatch.Length));
             }
         }
 
-        return Location;
+        return _location;
     }
 }

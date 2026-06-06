@@ -1,3 +1,6 @@
+using System;
+using System.Text;
+
 namespace McpGuard.Analyzers;
 
 /// <summary>
@@ -59,4 +62,68 @@ internal static class EncodedBlob
 
     private static bool IsBase64Char(char c)
         => (c is >= 'A' and <= 'Z') || (c is >= 'a' and <= 'z') || (c is >= '0' and <= '9') || c is '+' or '/' or '=';
+
+    /// <summary>
+    /// Attempts to base64-decode a blob to readable text, so a secret reference or exfil sink hidden
+    /// inside it can be re-scanned (MCPG003/MCPG004). Returns false when the blob is not valid base64 or
+    /// decodes to non-text (a hash or random token decodes to control-char gibberish that no rule matches).
+    /// </summary>
+    public static bool TryDecode(string blob, out string decoded)
+    {
+        decoded = string.Empty;
+        if (string.IsNullOrEmpty(blob))
+        {
+            return false;
+        }
+
+        string normalized = blob.Replace("=", string.Empty);
+        int remainder = normalized.Length % 4;
+        if (remainder == 1)
+        {
+            return false; // never a valid base64 length
+        }
+
+        if (remainder != 0)
+        {
+            normalized += new string('=', 4 - remainder);
+        }
+
+        byte[] bytes;
+        try
+        {
+            bytes = Convert.FromBase64String(normalized);
+        }
+        catch (FormatException)
+        {
+            return false;
+        }
+
+        string text = Encoding.UTF8.GetString(bytes);
+        if (!IsMostlyPrintable(text))
+        {
+            return false;
+        }
+
+        decoded = text;
+        return true;
+    }
+
+    private static bool IsMostlyPrintable(string text)
+    {
+        if (text.Length == 0)
+        {
+            return false;
+        }
+
+        int printable = 0;
+        foreach (char c in text)
+        {
+            if (c is '\t' or '\n' or '\r' || (c >= ' ' && c <= '~'))
+            {
+                printable++;
+            }
+        }
+
+        return printable >= text.Length * 0.85;
+    }
 }
