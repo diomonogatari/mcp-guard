@@ -16,7 +16,7 @@ internal sealed class AnsiEscapeRule : McpDescriptionRule
         category: RuleMetadata.SecurityCategory,
         defaultSeverity: DiagnosticSeverity.Warning,
         isEnabledByDefault: true,
-        description: "ANSI / terminal escape sequences (introduced by ESC, U+001B) can manipulate what a terminal-based MCP client renders — hiding text, rewriting lines, or spoofing hyperlinks. They have no legitimate place in a tool description.",
+        description: "ANSI / terminal escape sequences (introduced by ESC, U+001B) can manipulate what a terminal-based MCP client renders, hiding text, rewriting lines, or spoofing hyperlinks. They have no legitimate place in a tool description.",
         helpLinkUri: RuleMetadata.HelpUri(DiagnosticIds.AnsiEscapeInDescription));
 
     public override DiagnosticDescriptor Descriptor => Rule;

@@ -8,7 +8,7 @@
 
 ## Cause
 
-A `[Description]` on the MCP tool surface contains a long run of spaces or tabs (20+) — used to push
+A `[Description]` on the MCP tool surface contains a long run of spaces or tabs (20+), used to push
 text off the visible area so a human reviewer never scrolls to it.
 
 ## Rule description
@@ -22,6 +22,7 @@ Newlines break the run, so ordinary multi-line indentation is never flagged.
 ## How to fix violations
 
 Remove the padding and the content it hides; keep the description short and on a single logical line.
+A code fix is available: your IDE's Quick Fix (lightbulb) collapses the whitespace padding automatically.
 
 ## When to suppress
 

@@ -8,7 +8,7 @@
 
 ## Cause
 
-A model-visible string on the MCP tool surface names a sensitive credential artifact — an SSH private
+A model-visible string on the MCP tool surface names a sensitive credential artifact: an SSH private
 key, a cloud-credential file, or a system password file. The surface includes a `[Description]` on a
 method with `[McpServerTool]`, one of its parameters, or a type with `[McpServerToolType]`, **and** the
 identifier names the model also reads: a parameter name and the member names of an enum used as a tool
@@ -24,9 +24,9 @@ leaking those files.
 
 MCPG003 flags references to specific, unambiguous secret artifacts, including:
 
-- SSH private keys — `id_rsa`, `id_ed25519`, `id_dsa`, `id_ecdsa`, `~/.ssh`
-- credential stores — `.aws/credentials`, `.pgpass`, `.git-credentials`
-- system password files — `/etc/shadow`, `/etc/passwd`
+- SSH private keys: `id_rsa`, `id_ed25519`, `id_dsa`, `id_ecdsa`, `~/.ssh`
+- credential stores: `.aws/credentials`, `.pgpass`, `.git-credentials`
+- system password files: `/etc/shadow`, `/etc/passwd`
 
 It deliberately does **not** flag generic terms such as *"password"* or *"API key"*, which have
 legitimate uses — those are left to the exfiltration rule (verb + external-destination gate).

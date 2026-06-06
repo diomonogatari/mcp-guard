@@ -15,7 +15,7 @@ markdown sink).
 ## Rule description
 
 The individual rules are high-confidence heuristics. Their **co-occurrence on the same description** is
-not — a description that references a secret *and* ships data to an external destination is a working
+not. A description that references a secret *and* ships data to an external destination is a working
 exfiltration payload. mcp-guard escalates that combination to an **Error** so it fails the build, not
 just a warning.
 

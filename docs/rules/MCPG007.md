@@ -8,8 +8,8 @@
 
 ## Cause
 
-An `[McpServerTool]` (or prompt/resource) method has a **benign-sounding name** — `add`,
-`format_date`, `echo` — but its `[Description]` claims a **high-privilege capability**: shell/command
+An `[McpServerTool]` (or prompt/resource) method has a **benign-sounding name** (`add`,
+`format_date`, `echo`) but its `[Description]` claims a **high-privilege capability**: shell/command
 execution, arbitrary file access, or subprocess spawning.
 
 ## Rule description
@@ -17,7 +17,7 @@ execution, arbitrary file access, or subprocess spawning.
 Slipping a dangerous tool past review under an innocuous name is a known tactic. MCPG007 flags the
 mismatch: a tool the reviewer reads as harmless that actually claims file/network/shell reach.
 
-It is **Info-level** (advisory) because the heuristic is name-based — a tool that genuinely runs
+It is **Info-level** (advisory) because the heuristic is name-based: a tool that genuinely runs
 commands should simply be named for what it does (`run_command`), and is then not flagged.
 
 ## How to fix violations

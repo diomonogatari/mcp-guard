@@ -8,7 +8,7 @@
 
 ## Cause
 
-A `[Description]` on the MCP tool surface attaches covert behavior to **other** tools — telling the
+A `[Description]` on the MCP tool surface attaches covert behavior to **other** tools: telling the
 model to BCC/forward a copy of another tool's output, or to apply an action to every other tool.
 
 ## Rule description

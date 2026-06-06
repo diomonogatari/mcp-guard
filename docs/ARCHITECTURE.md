@@ -1,7 +1,7 @@
 # Architecture
 
 mcp-guard is a Roslyn `DiagnosticAnalyzer` plus a small rule framework that runs at build time and in
-the IDE. It targets `netstandard2.0` so it loads in every supported build host — verified on the
+the IDE. It targets `netstandard2.0` so it loads in every supported build host, verified on the
 .NET 8 SDK (Roslyn 4.8) and the .NET 10 SDK (Roslyn 5.0).
 
 ## The pipeline
@@ -24,7 +24,7 @@ For every `[Description]` attribute in the compilation,
 A rule is a small class deriving from
 [`McpDescriptionRule`](../src/McpGuard.Analyzers/McpDescriptionRule.cs): it owns its
 `DiagnosticDescriptor` and a single `Analyze` method, and is a stateless singleton registered in the
-analyzer's `RuleSet`. Adding a rule does not touch the orchestration — see
+analyzer's `RuleSet`. Adding a rule does not touch the orchestration; see
 [CONTRIBUTING](../CONTRIBUTING.md#adding-a-rule).
 
 Detection logic lives in dedicated, testable helpers (e.g. `ToolDescriptionPhrases`,
@@ -32,7 +32,7 @@ Detection logic lives in dedicated, testable helpers (e.g. `ToolDescriptionPhras
 
 ## Scope: static, not runtime
 
-mcp-guard only sees source at build time, so it covers the *static* half of MCP defense — description
+mcp-guard only sees source at build time, so it covers the *static* half of MCP defense: description
 and metadata content. Runtime guards (rug pulls, tool shadowing, live exfiltration) are out of scope
 by design; see the [threat model](THREAT-MODEL.md).
 
@@ -41,5 +41,5 @@ by design; see the [threat model](THREAT-MODEL.md).
 The analyzer ships as `McpGuard.Analyzers`, a development dependency whose DLL is packed into
 `analyzers/dotnet/cs/` (no `lib/`), so Roslyn auto-loads it for both IDE squiggles and command-line
 build warnings. It declares no package dependencies. `Microsoft.CodeAnalysis.CSharp` is pinned to the
-oldest supported host (4.8.0) — referencing a newer Roslyn would stop the analyzer loading on older
+oldest supported host (4.8.0); referencing a newer Roslyn would stop the analyzer loading on older
 build hosts.

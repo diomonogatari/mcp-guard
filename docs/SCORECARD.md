@@ -1,8 +1,8 @@
 # mcp-guard coverage scorecard
 
 What mcp-guard catches, what it deliberately does **not** claim, and the evidence behind both. mcp-guard
-is a build-time Roslyn analyzer: it scans the model-visible strings of a C# MCP server — `[Description]`
-text on tools / parameters / resources / prompts, tool `Name`s, and parameter / enum-member names — and
+is a build-time Roslyn analyzer: it scans the model-visible strings of a C# MCP server: `[Description]`
+text on tools / parameters / resources / prompts, tool `Name`s, and parameter / enum-member names, and
 fails the build on a poisoned one. It owns the **static** half of MCP defense; runtime guards are out of
 scope (below).
 
@@ -30,12 +30,12 @@ Grounded in a [known-attack corpus](../tests/McpGuard.Analyzers.Tests/KnownAttac
 payloads transplanted from public defensive-research PoCs (DVMCP, Invariant Labs, Repello, CyberArk;
 all exfil endpoints neutralized to `example.test`):
 
-- **9 known attacks** — each asserts the exact set of rules it triggers (e.g. Invariant `direct-poisoning`
+- **9 known attacks**: each asserts the exact set of rules it triggers (e.g. Invariant `direct-poisoning`
   → MCPG001 + MCPG003 + MCPG004 + **MCPG012**; Repello's base64-wrapped exfil → MCPG011 + decoded
   MCPG003/MCPG004 + MCPG012; CyberArk full-schema poisoning in a parameter name → MCPG003).
 - **8 benign look-alikes** — realistic clean tools that brush against the rules (OAuth login to an https
   URL, artifact upload, a `curl` fetch, base64/hex mentions, an authorized config read, a documentary
-  `id_rsa_compat_mode` parameter) — all assert **zero** diagnostics. This is the false-positive guard;
+  `id_rsa_compat_mode` parameter). All assert **zero** diagnostics. This is the false-positive guard;
   precision is the top priority.
 - **6 boundary cases** — runtime-only attacks asserted to fire **nothing** (see below).
 - **Live tiers** ([integration tests](../tests/McpGuard.IntegrationTests/LiveServerTests.cs)): a poisoned
@@ -47,14 +47,14 @@ All of it runs on every PR: **126 analyzer + 3 integration tests**, against **.N
 ## What it does NOT claim (runtime boundary)
 
 A build-time analyzer cannot see runtime behavior or cross-session state. These are out of scope and
-belong to runtime / proxy tooling — the corpus includes them as negative-scope tests so the boundary is
+belong to runtime / proxy tooling. The corpus includes them as negative-scope tests so the boundary is
 explicit (see the [threat model](THREAT-MODEL.md)):
 
 - **Runtime rug-pulls** by a third-party server (the *source-level* analog is [MCPG013](rules/MCPG013.md)).
 - **Indirect injection** via data the tool fetches at runtime (DVMCP challenge 6, Backslash web-scraper).
 - **ATPA** — payloads emitted in a tool's runtime **output / errors** (CyberArk).
 - **Tool shadowing across connected servers**, cross-server confused-deputy, live typosquatting.
-- **Full-schema poisoning via non-standard JSON-schema fields** — mcp-guard reads C# attributes, not the
+- **Full-schema poisoning via non-standard JSON-schema fields**: mcp-guard reads C# attributes, not the
   emitted schema (payloads in parameter/enum **names** *are* covered).
 - **Actual network exfiltration** — observable only at runtime.
 

@@ -1,6 +1,6 @@
 # mcp-guard rule roadmap & threat model
 
-mcp-guard owns the **static** half of MCP defense — the tool / parameter / resource / prompt
+mcp-guard owns the **static** half of MCP defense: the tool / parameter / resource / prompt
 descriptions and metadata present in C# source at build time. Runtime guards (live exfiltration,
 cross-server topology) are out of scope and named in the [threat model](THREAT-MODEL.md). The 1.0 rule
 set below is feature-complete; this page is the threat-grounded record of what shipped and why.
@@ -34,35 +34,35 @@ fuzzy rules are `Info`, and the confirmed-payload escalation is `Error`.
 > **No standalone secrecy rule.** Secrecy / non-disclosure directives ("do not tell the user", …) are
 > covered by **MCPG001**; the MCPG012 escalation combines MCPG003 (a secret reference) and MCPG004 (a sink).
 >
-> **MCPG007 / MCPG011** stay `Info` on purpose — a raw capability- or entropy-keyword match is noisy
-> ("runs arbitrary shell commands" is often an accurate description, not an attack) — so the deterministic
+> **MCPG007 / MCPG011** stay `Info` on purpose: a raw capability- or entropy-keyword match is noisy
+> ("runs arbitrary shell commands" is often an accurate description, not an attack), so the deterministic
 > core stays trusted.
 
 ### Refinements (shipped)
 
-- **MCPG002 hardening** — `U+200D` (ZWJ) is not blanket-flagged (legitimate in emoji/Indic scripts);
+- **MCPG002 hardening.** `U+200D` (ZWJ) is not blanket-flagged (legitimate in emoji/Indic scripts);
   variation-selector runs (`U+FE00–U+FE0F`, `U+E0100–U+E01EF`) are caught; Unicode-tag hits
   (`U+E0000–U+E007F`) are decoded into the diagnostic message.
-- **MCPG004 markdown sinks** — a rendered image/link with data in the query string
+- **MCPG004 markdown sinks.** A rendered image/link with data in the query string
   (`![x](http://host/?d={data})`) is flagged even with no transmit verb.
 - **MCPG005 sequence-aware** — full CSI (`ESC[ … @–~`) and OSC (`ESC] … BEL`/`ST`, incl. OSC-8) are
   recognized; the code fix strips the whole sequence, and MCPG002 keeps any bare/raw ESC.
 
 ## Cross-cutting (shipped)
 
-- **Full metadata-surface coverage** — every detector runs on the whole surface: method and **parameter**
+- **Full metadata-surface coverage.** Every detector runs on the whole surface: method and **parameter**
   `[Description]`s, **tool `Name` strings**, and `[McpServerResource]` / `[McpServerPrompt]` /
   `[McpServer*Type]` descriptions. A payload in any of them is caught, not just the method description.
-- **Multi-signal escalation (MCPG012)** — a secret reference (MCPG003) plus an external sink (MCPG004) on
+- **Multi-signal escalation (MCPG012).** A secret reference (MCPG003) plus an external sink (MCPG004) on
   one description is promoted to `Error`.
-- **Severity hygiene** — the fuzzy/capability rules (MCPG007, MCPG011) stay `Info`/opt-in so the
+- **Severity hygiene.** The fuzzy/capability rules (MCPG007, MCPG011) stay `Info`/opt-in so the
   deterministic core stays trusted.
-- **Robustness** — string extraction handles plain/verbatim/raw literals and `const` concatenation
+- **Robustness.** String extraction handles plain/verbatim/raw literals and `const` concatenation
   (interpolation cannot appear in an attribute).
 
 ## Differentiator: description-integrity baseline (rug-pull) — **shipped (MCPG013)**
 
-The one attack a runtime scanner catches but a text rule can't is the **rug-pull** — a description
+The one attack a runtime scanner catches but a text rule can't is the **rug-pull**: a description
 changed *after* the user approved it. mcp-guard pins it in source: a committed `McpGuard.Baseline.txt`
 of per-description fingerprints (added as an `AdditionalFiles`), with [MCPG013](rules/MCPG013.md) on
 drift unless the baseline is deliberately updated. The fingerprint is over the raw bytes, so even an
@@ -81,18 +81,18 @@ ANSI poisoning (mcp-guard sees descriptions in source, not runtime output).
 Each `MCPGxxx`: a positive fixture (fires), a clean look-alike (stays quiet), plus a Unicode/escape
 fixture where relevant. Real-attack corpora to draw from:
 
-- `invariantlabs-ai/mcp-injection-experiments` — poisoning + WhatsApp exfil + rug-pull PoCs.
+- `invariantlabs-ai/mcp-injection-experiments`: poisoning + WhatsApp exfil + rug-pull PoCs.
 - Trail of Bits ANSI-in-MCP PoC (`\x1B[38;5;231;49m` white-on-white) — the canonical MCPG005 fixture.
-- `aminrj-labs/mcp-attack-labs` — offline reproducible poisoned servers.
+- `aminrj-labs/mcp-attack-labs`: offline reproducible poisoned servers.
 - MCPTox (arXiv 2508.14925) — tool-poisoning benchmark.
-- `roslyn-codelens-mcp` CVE GHSA-552p-8f74-6x7q — the README "this is real" example.
+- `roslyn-codelens-mcp` CVE GHSA-552p-8f74-6x7q: the README "this is real" example.
 
 ## Sources
 
 - Trail of Bits — *Deceiving users with ANSI terminal codes in MCP* — <https://blog.trailofbits.com/2025/04/29/deceiving-users-with-ansi-terminal-codes-in-mcp/>
 - CyberArk — *Abusing Terminal Emulators with ANSI Escape Characters*
 - Invariant Labs — Tool Poisoning Attacks + `mcp-injection-experiments`
-- *MCP-38: A Threat Taxonomy for MCP* — arXiv 2603.18063
+- *MCP-38: A Threat Taxonomy for MCP* (arXiv 2603.18063)
 - AWS Security — *Defending LLM apps against Unicode character smuggling* (Sep 2025)
 - OWASP MCP Top 10 — <https://owasp.org/www-project-mcp-top-10/>
 - OSC 8 hyperlink spec — <https://gist.github.com/egmontkob/eb114294efbcd5adb1944c9f3cb5feda>

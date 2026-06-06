@@ -9,7 +9,7 @@
 ## Cause
 
 A `[Description]` on the MCP tool surface instructs the model to **transmit sensitive data to an
-external destination** — combining a transmit verb, an external URL/webhook, and a
+external destination**, combining a transmit verb, an external URL/webhook, and a
 sensitivity-or-covert signal.
 
 ## Rule description
@@ -19,15 +19,15 @@ into sending secrets, credentials, or the conversation itself to an attacker-con
 
 To stay precise, MCPG004 fires only when **all three** signals are present:
 
-1. **a transmit verb** — `send`, `upload`, `transmit`, `exfiltrate`, `forward`, `email`
-2. **an external destination** — `http://`, `https://`, `ftp://`, `www.`, or `webhook`
-3. **a sensitivity or covert cue** — a secret/credential/`conversation`/`system prompt`/`.env`
+1. **a transmit verb**: `send`, `upload`, `transmit`, `exfiltrate`, `forward`, `email`
+2. **an external destination**: `http://`, `https://`, `ftp://`, `www.`, or `webhook`
+3. **a sensitivity or covert cue**: a secret/credential/`conversation`/`system prompt`/`.env`
    reference (incl. the MCPG003 artifacts), or covert phrasing like *"without telling the user"* /
    *"in the background"*
 
-This deliberately does **not** flag a legitimate tool that uploads to a configured endpoint — e.g.
-*"Uploads the build artifact to https://artifacts.internal/builds"* has a verb and a destination but
-no sensitivity/covert signal.
+This deliberately does **not** flag a legitimate tool that uploads to a configured endpoint. For
+example, *"Uploads the build artifact to https://artifacts.internal/builds"* has a verb and a
+destination but no sensitivity/covert signal.
 
 ### Markdown sinks (no transmit verb)
 
@@ -37,7 +37,7 @@ Some channels need no verb at all — a markdown renderer auto-fetches them:
   data in the query string;
 - **a markdown link templating data into an external URL** — `[x](https://host/?d={input})`.
 
-A plain documentation link (`[the docs](https://example.com/docs)` — no image, no `{…}` placeholder) is
+A plain documentation link (`[the docs](https://example.com/docs)`, no image, no `{…}` placeholder) is
 not flagged.
 
 ## How to fix violations

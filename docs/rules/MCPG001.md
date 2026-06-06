@@ -8,8 +8,8 @@
 
 ## Cause
 
-A `[Description]` attribute that is part of the MCP tool surface — a method annotated with
-`[McpServerTool]`, one of its parameters, or a type annotated with `[McpServerToolType]` — contains
+A `[Description]` attribute that is part of the MCP tool surface (a method annotated with
+`[McpServerTool]`, one of its parameters, or a type annotated with `[McpServerToolType]`) contains
 instruction-style phrasing that an LLM may execute.
 
 An MCP client feeds these descriptions to the model verbatim. The model reads them as instructions,
@@ -20,9 +20,9 @@ prompt-injection** vector: the description tells the model to do something the u
 
 MCPG001 flags high-confidence injection phrasing such as:
 
-- instruction overrides — *"ignore previous instructions"*, *"disregard the above"*
-- concealment directives — *"do not tell the user"*, *"without telling the user"*
-- pre-response hijacks — *"before answering, …"*, *"before responding, …"*
+- instruction overrides: *"ignore previous instructions"*, *"disregard the above"*
+- concealment directives: *"do not tell the user"*, *"without telling the user"*
+- pre-response hijacks: *"before answering, …"*, *"before responding, …"*
 - references to the *"system prompt"*
 
 Only descriptions on the MCP tool surface are inspected, so ordinary `[Description]` usage elsewhere

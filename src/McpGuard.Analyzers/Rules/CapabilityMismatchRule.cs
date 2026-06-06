@@ -14,7 +14,7 @@ internal sealed class CapabilityMismatchRule : McpDescriptionRule
         category: RuleMetadata.SecurityCategory,
         defaultSeverity: DiagnosticSeverity.Info,
         isEnabledByDefault: true,
-        description: "A benign-sounding tool (\"add\", \"format_date\") whose description claims file, network, or shell reach is a capability / description mismatch — a way to slip a dangerous tool past review under an innocuous name. Advisory (Info) because the heuristic is name-based.",
+        description: "A benign-sounding tool (\"add\", \"format_date\") whose description claims file, network, or shell reach is a capability / description mismatch: a way to slip a dangerous tool past review under an innocuous name. Advisory (Info) because the heuristic is name-based.",
         helpLinkUri: RuleMetadata.HelpUri(DiagnosticIds.CapabilityMismatchInDescription));
 
     public override DiagnosticDescriptor Descriptor => Rule;

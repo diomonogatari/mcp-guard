@@ -10,7 +10,7 @@ Reference the analyzer in the project you want gated:
 
 ```xml
 <ItemGroup>
-  <PackageReference Include="McpGuard.Analyzers" Version="0.1.0" PrivateAssets="all" />
+  <PackageReference Include="McpGuard.Analyzers" Version="1.0.0" PrivateAssets="all" />
 </ItemGroup>
 ```
 
@@ -62,8 +62,8 @@ dotnet_diagnostic.MCPG001.severity = error
 
 ## Notes
 
-- **MCPG012** (confirmed exfiltration payload) is already an error by default — it fails the build even
+- **MCPG012** (confirmed exfiltration payload) is already an error by default. It fails the build even
   without `warnings-as-errors`.
 - **MCPG013** (the integrity baseline) only fires once you commit a `McpGuard.Baseline.txt`; see
   [the rule docs](rules/MCPG013.md).
-- Suppressing a security rule should be deliberate and reviewed — prefer fixing the description.
+- Suppressing a security rule should be deliberate and reviewed; prefer fixing the description.

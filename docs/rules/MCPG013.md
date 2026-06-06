@@ -9,7 +9,7 @@
 ## Cause
 
 A committed integrity baseline pins an MCP tool member's `[Description]`, and the current description's
-fingerprint no longer matches it — either it changed since it was pinned, or it is a new tool the
+fingerprint no longer matches it: either it changed since it was pinned, or it is a new tool the
 baseline does not yet record.
 
 ## Rule description
@@ -48,7 +48,7 @@ that has not opted in.
 
 3. Paste those lines into `McpGuard.Baseline.txt` (or apply the **"Update mcp-guard integrity baseline"**
    code fix). Commit the file. From now on, any description change re-fires MCPG013 until the baseline is
-   deliberately updated in the same way — which shows up in code review.
+   deliberately updated in the same way, which shows up in code review.
 
 ### Baseline file format
 
@@ -71,5 +71,5 @@ code fix does this for you). If it is not, revert the description.
 
 ## When to suppress
 
-Suppressing MCPG013 defeats the purpose — the value is that a description change cannot pass silently.
+Suppressing MCPG013 defeats the purpose: the value is that a description change cannot pass silently.
 Update the baseline instead. If you do not want integrity pinning at all, simply remove the baseline file.

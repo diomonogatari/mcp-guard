@@ -9,7 +9,7 @@ internal sealed class EncodedBlobRule : McpDescriptionRule
     private static readonly DiagnosticDescriptor Rule = new(
         id: DiagnosticIds.EncodedBlobInDescription,
         title: "MCP tool description contains an encoded blob",
-        messageFormat: "MCP tool description contains a {0}-character base64/hex blob; encoded blobs are an obfuscation channel — verify it is not a hidden payload",
+        messageFormat: "MCP tool description contains a {0}-character base64/hex blob; encoded blobs are an obfuscation channel, so decode and review it, then remove it if it is not legitimate",
         category: RuleMetadata.SecurityCategory,
         defaultSeverity: DiagnosticSeverity.Info,
         isEnabledByDefault: true,

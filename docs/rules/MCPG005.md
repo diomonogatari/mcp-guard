@@ -8,7 +8,7 @@
 
 ## Cause
 
-A `[Description]` on the MCP tool surface contains an ANSI / terminal escape sequence — text
+A `[Description]` on the MCP tool surface contains an ANSI / terminal escape sequence: text
 introduced by the ESC control character (U+001B), such as `ESC[31m` (set color) or `ESC[2K`
 (erase line).
 
@@ -26,9 +26,10 @@ byte.
 ## How to fix violations
 
 Remove the escape. Describe the tool in plain text; if you need to convey emphasis, use words, not
-terminal control codes.
+terminal control codes. A code fix is available: your IDE's Quick Fix (lightbulb) removes the ANSI
+escape sequence automatically.
 
 ## When to suppress
 
-Effectively never — a tool description should be plain text. For an unusual, justified case, scope a
+Effectively never: a tool description should be plain text. For an unusual, justified case, scope a
 `#pragma warning disable MCPG005`.

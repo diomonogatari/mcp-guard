@@ -8,14 +8,14 @@
 
 ## Cause
 
-A `[Description]` on the MCP tool surface — a method annotated with `[McpServerTool]`, one of its
-parameters, or a type annotated with `[McpServerToolType]` — contains an invisible or non-printable
+A `[Description]` on the MCP tool surface (a method annotated with `[McpServerTool]`, one of its
+parameters, or a type annotated with `[McpServerToolType]`) contains an invisible or non-printable
 character: a zero-width space/joiner, a bidirectional-control code, a byte-order mark, a Unicode
 "tag" character, or a stray control code.
 
 ## Rule description
 
-A description is supposed to be human-readable prose. Invisible characters are not — and they are a
+A description is supposed to be human-readable prose. Invisible characters are not, and they are a
 known smuggling vector: a human reviewing the source (or the rendered tool list) sees innocuous text,
 while the model receives extra characters that can carry or obscure instructions. Bidirectional
 overrides can even make displayed text read differently from its logical order.
@@ -36,7 +36,9 @@ To stay precise it does **not** flag two legitimate cases: a lone zero-width joi
 ## How to fix violations
 
 Retype the description as plain text. If you pasted it from another source, the invisible character
-likely came along for the ride — delete and re-enter the affected text.
+likely came along for the ride; delete and re-enter the affected text.
+
+A code fix is available: your IDE's Quick Fix (lightbulb) removes the hidden characters automatically.
 
 ```csharp
 // ❌ MCPG002 — a zero-width space hides between "log." and the trailing text
@@ -48,6 +50,6 @@ likely came along for the ride — delete and re-enter the affected text.
 
 ## When to suppress
 
-Effectively never — there is no legitimate reason for an invisible character in a tool description.
+Effectively never: there is no legitimate reason for an invisible character in a tool description.
 If a specific code point is a genuine false positive for your domain, prefer rewording; a scoped
 `#pragma warning disable MCPG002` is a last resort.

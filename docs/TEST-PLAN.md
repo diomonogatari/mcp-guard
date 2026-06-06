@@ -1,10 +1,11 @@
 # mcp-guard — Known-Attack Corpus Test Plan
 
 How the public MCP poisoning PoCs become a layered, credible test suite, grounded in the actual analyzer
-code and the actual `mcp-server-factory` harness. This is the implementation guide; 1.0.0 is gated on it.
+code and the actual `mcp-server-factory` harness. This was the implementation guide that 1.0.0 was gated on.
 
-> **Status:** plan only. Verified against the analyzer source and the `mcp-server-factory` 1.0.0 API
-> (MCP SDK 1.4.0) in June 2026. Sections marked **DECISION** need a call before implementation.
+> **Status:** implemented (Tiers 1-4 shipped). Verified against the analyzer source and the
+> `mcp-server-factory` 1.0.0 API (MCP SDK 1.4.0) in June 2026. Sections marked **DECISION** record a
+> call that was made before implementation.
 
 ---
 
@@ -22,7 +23,7 @@ sketch, both verified against the code:
    `[Theory]` row per attack), with provenance carried in the data, not on disk.
 2. **`mcp-server-factory` powers the live tiers, not the rule tests.** It boots a real in-process MCP
    server and a real client, so it proves round-trip authenticity (Tier 3) and drives the runtime
-   rug-pull demonstration (Tier 4) — things the static tests structurally cannot do.
+   rug-pull demonstration (Tier 4), things the static tests structurally cannot do.
 
 ---
 
@@ -61,7 +62,7 @@ Drawing the line is the credibility.
 
 ### Tier 1 — Analyzer rule unit tests (verifier-based) — exists, extend
 One class per `MCPGxxx` (already ~94 tests). Each rule keeps: a positive (fires at the right span), a
-clean look-alike (stays silent — the FP guard), config/severity via `.editorconfig`, inline suppression,
+clean look-alike (stays silent, the FP guard), config/severity via `.editorconfig`, inline suppression,
 encoding fixtures where relevant (Unicode-tag, zero-width, variation-selector, ANSI CSI/OSC), and a
 code-fix verifier for rules with fixes. **Pattern:** inline `Harness` const + `With(body)` raw-string
 literals + `[Theory]` over `net8.0`/`net10.0` (matches the 18 existing test files).
@@ -94,7 +95,7 @@ harness into the Roslyn-pinned analyzer-test project) referencing the `McpServer
 ### Tier 4 — Rug-pull authenticity (MCPG013) (`mcp-server-factory`) — the differentiator
 **Implemented** in `McpGuard.IntegrationTests` (`LiveServerTests`): a benign tool is booted, then its
 description is swapped at runtime via the live tool collection; the next `tools/list` returns the
-poisoned text and a `tools/list_changed` notification fires — proving the runtime rug-pull mcp-guard's
+poisoned text and a `tools/list_changed` notification fires, proving the runtime rug-pull mcp-guard's
 MCPG013 mirrors at the source level. (Fast and in-process, so it runs in the standard PR suite.)
 
 The factory can serve **different metadata on a second `tools/list`** today (verified): reach the live
@@ -106,31 +107,31 @@ description and a `notifications/tools/list_changed` fires (the factory's `Notif
 it).
 
 **What this tier proves (and the boundary it draws):** mcp-guard's MCPG013 is a **build-time, source-level**
-rug-pull guard — it catches a description changed in *source* against a committed baseline. The factory
+rug-pull guard: it catches a description changed in *source* against a committed baseline. The factory
 demonstrates the **runtime** swap mcp-guard cannot see, which is *why* MCPG013 exists as the static proxy.
 So Tier 4 has two coherent halves:
 1. **Static (Tier 1, already done):** edit a fixture's source description with a committed baseline →
    MCPG013 fires (`DescriptionBaselineTests`).
 2. **Live boundary:** boot the original and mutated servers, show the served description actually differs
-   over the wire — proving the source edit equals a real served-metadata change — and assert mcp-guard
+   over the wire (proving the source edit equals a real served-metadata change), and assert mcp-guard
    makes **no runtime claim** (the live swap is out of scope; the source pin is the defense).
 
 > **DECISION 4A.** Tier 4 as a pure *demonstration* (above) needs no analyzer change. If instead you want
 > an actual **runtime** integrity monitor (compare live `tools/list` to a pinned baseline), that is a
-> **new feature** beyond a build-time analyzer — out of 1.0 scope unless you want it.
+> **new feature** beyond a build-time analyzer, out of 1.0 scope unless you want it.
 
 ---
 
 ## Cross-cutting (corrected)
 
 - **Robustness fixtures.** Assert detection survives **const concatenation** (already tested), **verbatim
-  `@"…"` multiline**, and **raw `"""…"""`** strings. **Drop "string interpolation"** — an interpolated
+  `@"…"` multiline**, and **raw `"""…"""`** strings. **Drop "string interpolation"**: an interpolated
   string is not a compile-time constant, so it *cannot* be a `[Description]` argument; such a fixture
   would fail to compile, not exercise the analyzer. (Extraction is `GetConstantValue`-only.)
 - **Multi-signal escalation.** One fixture: a secret reference (**MCPG003**) **and** an external sink
   (**MCPG004**) on one description → **MCPG012 (Error)**. Model on the passing `EscalationTests` case.
   *(The original "MCPG010 secrecy" was a double error: MCPG010 is whitespace padding; secrecy phrasing is
-  MCPG001, coercion is MCPG006 — none of which participate in the escalation. Optionally add an MCPG001/006
+  MCPG001, coercion is MCPG006, none of which participate in the escalation. Optionally add an MCPG001/006
   signal for realism, but it is orthogonal to the Error.)*
 - **Surface coverage.** Fixtures must exercise the surfaces the analyzer **actually** scans: member
   `[Description]`, **parameter `[Description]`**, type `[Description]`, and member **`Name="…"`**. The
@@ -139,21 +140,21 @@ So Tier 4 has two coherent halves:
 
 ---
 
-## Known gaps surfaced by the corpus — **RESOLVED**
+## Known gaps surfaced by the corpus: **RESOLVED**
 
 The corpus (CyberArk FSP + MCPTox MCP-11) exposed statically-catchable surfaces the analyzer did not
 cover. Resolutions:
 
-- **G1 — parameter / enum-member NAMES — CLOSED.** The analyzer now scans each parameter identifier and
+- **G1, parameter / enum-member NAMES: CLOSED.** The analyzer now scans each parameter identifier and
   the member names of an enum used as a tool parameter type, running the existing rules over them, so a
   payload smuggled into `content_from_reading_ssh_id_rsa` trips MCPG003. (Enum member iteration is
   deduplicated per compilation.) Covered by `ParameterAndEnumNameTests`.
-- **G2 — encoded-blob decode-then-rescan — CLOSED.** A base64 blob that decodes to readable text is
+- **G2, encoded-blob decode-then-rescan: CLOSED.** A base64 blob that decodes to readable text is
   re-scanned for a secret (MCPG003) and a sink (MCPG004); the combination escalates to MCPG012 (Error)
   instead of hiding behind advisory MCPG011. `curl`/`wget` were added to the transmit verbs so the
   canonical `cat ~/.ssh/* | wget http://…` is recognized once decoded. Covered by
   `EncodedBlobEscalationTests`.
-- **G3 — non-standard schema fields (CyberArk "extra field") — DOCUMENTED as out-of-scope.** The analyzer
+- **G3, non-standard schema fields (CyberArk "extra field"): DOCUMENTED as out-of-scope.** The analyzer
   reads C# attributes, not the emitted JSON schema, so an `extra`/`note` schema field is invisible by
   design. Recorded as a boundary in the [threat model](THREAT-MODEL.md); corpus row 11 is a negative-scope
   test.
@@ -162,9 +163,9 @@ cover. Resolutions:
 
 ## Coverage scorecard
 
-The coverage-and-precision story is the in-repo [known-attack corpus](../tests/McpGuard.Analyzers.Tests/KnownAttackCorpusTests.cs)
-— 9 PoC attacks (each asserting its exact rule set), 6 runtime-only boundary cases (asserting silence),
-and 8 benign look-alike controls (asserting zero false positives) — plus the live tiers. It is summarized
+The coverage-and-precision story is the in-repo [known-attack corpus](../tests/McpGuard.Analyzers.Tests/KnownAttackCorpusTests.cs):
+9 PoC attacks (each asserting its exact rule set), 6 runtime-only boundary cases (asserting silence),
+and 8 benign look-alike controls (asserting zero false positives), plus the live tiers. It is summarized
 for consumers in [SCORECARD.md](SCORECARD.md), framed against **MCP-38 Category I** (≈ MCP-10/11/13/15 +
 MCP-16 rug-pull) and **OWASP MCP03**, not all 38 / all 10.
 
@@ -182,8 +183,8 @@ MCP-16 rug-pull) and **OWASP MCP03**, not all 38 / all 10.
   so they run in the standard suite rather than a separate scheduled job.
 
 **Sequence (done):**
-1. Tier 1 + Tier 2 for the deterministic core — proves the rules and the corpus data format end-to-end.
-2. Resolve **G1 / G2** — they changed which corpus rows are green.
+1. Tier 1 + Tier 2 for the deterministic core, proving the rules and the corpus data format end-to-end.
+2. Resolve **G1 / G2**, which changed which corpus rows are green.
 3. Stand up `McpGuard.IntegrationTests` + Tier 3 round-trip authenticity.
 4. Tier 4 rug-pull demonstration alongside the MCPG013 story.
 5. Adversarial review + precision/bypass hardening + benign controls.

@@ -9,7 +9,7 @@
 ## Cause
 
 A `[Description]` on the MCP tool surface contains phrasing that **coerces the model** or tries to
-**suppress other tools** — the manipulation / authority layer of tool poisoning, complementing
+**suppress other tools**: the manipulation / authority layer of tool poisoning, complementing
 [MCPG001](MCPG001.md)'s instruction-override phrasing.
 
 ## Rule description
@@ -17,11 +17,11 @@ A `[Description]` on the MCP tool surface contains phrasing that **coerces the m
 A tool description should describe the tool. Phrasing that instead tries to bend the model's behavior
 is a poisoning tactic:
 
-- **tool suppression / monopolization** — *"do not use other tools"*, *"instead of other tools"*
-- **coercion** — *"you must comply"*, *"you have no choice"*, *"you must obey"*,
+- **tool suppression / monopolization**: *"do not use other tools"*, *"instead of other tools"*
+- **coercion**: *"you must comply"*, *"you have no choice"*, *"you must obey"*,
   *"you are not allowed to refuse"*
-- **false authority** — *"I am the developer"*, *"I am authorized to…"*
-- **model-addressing** — *"as an AI, you must…"*, *"as the assistant, you must…"*
+- **false authority**: *"I am the developer"*, *"I am authorized to…"*
+- **model-addressing**: *"as an AI, you must…"*, *"as the assistant, you must…"*
 
 The catalog is deliberately tight, so ordinary workflow hints are **not** flagged — e.g.
 *"Call `list_projects` first to get IDs"* or *"Always returns timestamps in UTC"* are fine.

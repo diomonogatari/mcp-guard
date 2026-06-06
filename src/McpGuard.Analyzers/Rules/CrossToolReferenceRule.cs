@@ -13,7 +13,7 @@ internal sealed class CrossToolReferenceRule : McpDescriptionRule
         category: RuleMetadata.SecurityCategory,
         defaultSeverity: DiagnosticSeverity.Warning,
         isEnabledByDefault: true,
-        description: "A description that attaches covert behavior to other tools — \"also BCC …\", \"forward a copy …\", \"for every other tool …\" — is a tool-shadowing / cross-server compromise vector. A tool describes itself; it does not orchestrate the rest of the toolset.",
+        description: "A description that attaches covert behavior to other tools (\"also BCC …\", \"forward a copy …\", \"for every other tool …\") is a tool-shadowing / cross-server compromise vector. A tool describes itself; it does not orchestrate the rest of the toolset.",
         helpLinkUri: RuleMetadata.HelpUri(DiagnosticIds.CrossToolReferenceInDescription));
 
     public override DiagnosticDescriptor Descriptor => Rule;
