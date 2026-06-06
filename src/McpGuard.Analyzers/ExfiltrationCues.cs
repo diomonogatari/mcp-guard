@@ -22,9 +22,14 @@ internal static class ExfiltrationCues
         "exfiltrate",
         "forward",
         "email",
-        // Data-transfer commands — the verb of choice once a payload is decoded out of an encoded blob.
-        // Still gated by the external-destination + sensitivity signals, so a benign "curl the public
-        // API" is not flagged.
+    };
+
+    // Data-transfer commands. These are also *fetch* verbs in normal prose ("uses curl to fetch from the
+    // public API"), so they are only treated as transmit verbs when scanning content decoded out of an
+    // encoded blob — where a `cat ~/.ssh/* | wget http://…` shell payload is the realistic shape — not in
+    // plain description text, to keep precision high.
+    private static readonly string[] ShellFetchVerbs =
+    {
         "curl",
         "wget",
     };
@@ -49,6 +54,14 @@ internal static class ExfiltrationCues
 
     /// <summary>Returns a short description of the exfiltration channel found, if any.</summary>
     public static bool TryFindSink(string description, out string channel)
+        => TryFindSink(description, includeShellFetchVerbs: false, out channel);
+
+    /// <summary>
+    /// As <see cref="TryFindSink(string, out string)"/>, but optionally also treats shell fetch commands
+    /// (<c>curl</c>/<c>wget</c>) as transmit verbs. Used when re-scanning content decoded out of an
+    /// encoded blob, where such a command is a realistic exfil shape; not used for plain description text.
+    /// </summary>
+    public static bool TryFindSink(string description, bool includeShellFetchVerbs, out string channel)
     {
         channel = string.Empty;
         if (string.IsNullOrWhiteSpace(description))
@@ -80,6 +93,18 @@ internal static class ExfiltrationCues
                 {
                     channel = "a transmit directive (" + verb + ")";
                     return true;
+                }
+            }
+
+            if (includeShellFetchVerbs)
+            {
+                foreach (string verb in ShellFetchVerbs)
+                {
+                    if (ContainsWord(lowered, verb))
+                    {
+                        channel = "a transmit directive (" + verb + ")";
+                        return true;
+                    }
                 }
             }
         }

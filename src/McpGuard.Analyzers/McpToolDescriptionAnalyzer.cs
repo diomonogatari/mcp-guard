@@ -156,7 +156,7 @@ public sealed class McpToolDescriptionAnalyzer : DiagnosticAnalyzer
         foreach (ParameterSyntax parameter in method.ParameterList.Parameters)
         {
             McpDescription paramName = McpDescription.FromToken(parameter.Identifier, McpDescriptionTarget.ParameterName);
-            RunRules(in paramName, context);
+            ScanName(in paramName, context);
 
             if (context.SemanticModel.GetDeclaredSymbol(parameter, context.CancellationToken) is { Type: { TypeKind: TypeKind.Enum } enumType }
                 && scannedEnums.TryAdd(enumType, 0))
@@ -180,9 +180,20 @@ public sealed class McpToolDescriptionAnalyzer : DiagnosticAnalyzer
                 if (reference.GetSyntax(context.CancellationToken) is EnumMemberDeclarationSyntax declaration)
                 {
                     McpDescription memberName = McpDescription.FromToken(declaration.Identifier, McpDescriptionTarget.EnumMemberName);
-                    RunRules(in memberName, context);
+                    ScanName(in memberName, context);
                 }
             }
+        }
+    }
+
+    // A parameter/enum-member name is a high false-positive surface — it legitimately uses artifact-like
+    // tokens as documentation — so it is NOT run through the full rule set. Only a secret-file reference
+    // that reads as a directive (artifact + an access verb) is flagged, via the MCPG003 descriptor.
+    private static void ScanName(in McpDescription name, SyntaxNodeAnalysisContext context)
+    {
+        if (SuspiciousNames.TryFindSecretDirective(name.Text, out string artifact))
+        {
+            context.ReportDiagnostic(Diagnostic.Create(SecretRule.Descriptor, name.LocationOf(artifact), artifact));
         }
     }
 
@@ -208,7 +219,7 @@ public sealed class McpToolDescriptionAnalyzer : DiagnosticAnalyzer
                 context.ReportDiagnostic(Diagnostic.Create(SecretRule.Descriptor, description.LocationOf(blob), secretMatch));
             }
 
-            if (!sink && ExfiltrationCues.TryFindSink(decoded, out string channel))
+            if (!sink && ExfiltrationCues.TryFindSink(decoded, includeShellFetchVerbs: true, out string channel))
             {
                 sink = true;
                 context.ReportDiagnostic(Diagnostic.Create(SinkRule.Descriptor, description.LocationOf(blob), channel));

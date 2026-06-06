@@ -148,4 +148,21 @@ public class ExfiltrationRuleTests
 
         await Verify.VerifyAsync(source, ReferenceAssemblies.Net.Net100);
     }
+
+    [Fact]
+    public async Task DoesNotReportCurlFetchInPlainDescription()
+    {
+        // curl/wget are fetch verbs in prose; they are only treated as transmit verbs inside a decoded
+        // blob (the Repello shell-payload shape), not in plain description text — so this stays quiet.
+        string source = With("""
+            [McpServerToolType]
+            public class T
+            {
+                [McpServerTool, Description("Uses curl to fetch credentials from https://vault.example.com for authentication.")]
+                public string M(string p) => p;
+            }
+            """);
+
+        await Verify.VerifyAsync(source, ReferenceAssemblies.Net.Net100);
+    }
 }

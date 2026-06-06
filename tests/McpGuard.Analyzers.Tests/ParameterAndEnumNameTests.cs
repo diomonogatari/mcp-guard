@@ -89,4 +89,23 @@ public class ParameterAndEnumNameTests
 
         await Verify.VerifyAsync(source, ReferenceAssemblies.Net.Net100);
     }
+
+    [Theory]
+    [InlineData("net8.0")]
+    [InlineData("net10.0")]
+    public async Task DoesNotFlagDocumentaryNameWithoutAnAccessVerb(string targetFramework)
+    {
+        // A name that merely *documents* an artifact format is not a directive — no access verb, so it
+        // must stay quiet (precision guard). Contrast with content_from_reading_ssh_id_rsa, which reads.
+        string source = With("""
+            [McpServerToolType]
+            public class T
+            {
+                [McpServerTool]
+                public string M(string id_rsa_compat_mode, string provide_id_rsa_key_format) => id_rsa_compat_mode;
+            }
+            """);
+
+        await Verify.VerifyAsync(source, ReferenceFor(targetFramework));
+    }
 }

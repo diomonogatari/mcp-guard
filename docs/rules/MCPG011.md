@@ -19,12 +19,19 @@ can look identical — review the blob and remove it if it is not legitimate.
 
 URLs and paths do not trip it: `:`, `.`, and `?` are not base64 characters and break the run.
 
-**Decode-and-rescan.** A blob that base64-decodes to readable text is re-scanned for a secret reference
-([MCPG003](MCPG003.md)) and an exfiltration sink ([MCPG004](MCPG004.md)). If a payload like
+**Decode-and-rescan.** A blob that base64- **or hex**-decodes to readable text is re-scanned for a secret
+reference ([MCPG003](MCPG003.md)) and an exfiltration sink ([MCPG004](MCPG004.md)). If a payload like
 `cat ~/.ssh/id_rsa | wget http://…` is hidden inside the blob, those rules fire on the decoded content
 and the secret-plus-sink combination escalates to [MCPG012](MCPG012.md) (Error) — so obfuscation does
 not downgrade a real exfiltration payload to advisory. A blob that decodes to a hash or random token
 yields no readable text and only the advisory MCPG011 remains.
+
+**Obfuscation limits (by design).** The decode-and-rescan handles a single base64/hex blob — the shape
+real PoCs use. Layered evasions — a blob split across whitespace below the detection threshold, a payload
+spread over multiple blobs, or double-encoding — can still keep a payload out of the *escalation* path.
+MCPG011 stays **advisory** precisely because encoded content is fuzzy; it flags the blob so a human
+reviews it, rather than chasing every obfuscation in the deterministic core. The build-breaking
+guarantees (MCPG003/004/012) hold for plaintext and for a single decodable blob.
 
 ## How to fix violations
 

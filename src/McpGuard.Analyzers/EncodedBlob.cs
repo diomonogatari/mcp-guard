@@ -64,9 +64,11 @@ internal static class EncodedBlob
         => (c is >= 'A' and <= 'Z') || (c is >= 'a' and <= 'z') || (c is >= '0' and <= '9') || c is '+' or '/' or '=';
 
     /// <summary>
-    /// Attempts to base64-decode a blob to readable text, so a secret reference or exfil sink hidden
-    /// inside it can be re-scanned (MCPG003/MCPG004). Returns false when the blob is not valid base64 or
-    /// decodes to non-text (a hash or random token decodes to control-char gibberish that no rule matches).
+    /// Attempts to decode a blob to readable text — base64 first, then hex — so a secret reference or
+    /// exfil sink hidden inside it can be re-scanned (MCPG003/MCPG004). Returns false when neither decoding
+    /// yields text (a hash or random token decodes to control-char gibberish that no rule matches). Hex is
+    /// tried because hex digits are a subset of the base64 alphabet, so a hex-encoded payload would
+    /// otherwise pass detection but fail to decode.
     /// </summary>
     public static bool TryDecode(string blob, out string decoded)
     {
@@ -76,6 +78,24 @@ internal static class EncodedBlob
             return false;
         }
 
+        if (TryBase64(blob, out string fromBase64) && IsMostlyPrintable(fromBase64))
+        {
+            decoded = fromBase64;
+            return true;
+        }
+
+        if (TryHex(blob, out string fromHex) && IsMostlyPrintable(fromHex))
+        {
+            decoded = fromHex;
+            return true;
+        }
+
+        return false;
+    }
+
+    private static bool TryBase64(string blob, out string text)
+    {
+        text = string.Empty;
         string normalized = blob.Replace("=", string.Empty);
         int remainder = normalized.Length % 4;
         if (remainder == 1)
@@ -88,25 +108,49 @@ internal static class EncodedBlob
             normalized += new string('=', 4 - remainder);
         }
 
-        byte[] bytes;
         try
         {
-            bytes = Convert.FromBase64String(normalized);
+            text = Encoding.UTF8.GetString(Convert.FromBase64String(normalized));
+            return true;
         }
         catch (FormatException)
         {
             return false;
         }
+    }
 
-        string text = Encoding.UTF8.GetString(bytes);
-        if (!IsMostlyPrintable(text))
+    private static bool TryHex(string blob, out string text)
+    {
+        text = string.Empty;
+        if (blob.Length < 2 || blob.Length % 2 != 0)
         {
             return false;
         }
 
-        decoded = text;
+        var bytes = new byte[blob.Length / 2];
+        for (int i = 0; i < bytes.Length; i++)
+        {
+            int hi = HexValue(blob[2 * i]);
+            int lo = HexValue(blob[(2 * i) + 1]);
+            if (hi < 0 || lo < 0)
+            {
+                return false;
+            }
+
+            bytes[i] = (byte)((hi << 4) | lo);
+        }
+
+        text = Encoding.UTF8.GetString(bytes);
         return true;
     }
+
+    private static int HexValue(char c) => c switch
+    {
+        >= '0' and <= '9' => c - '0',
+        >= 'a' and <= 'f' => c - 'a' + 10,
+        >= 'A' and <= 'F' => c - 'A' + 10,
+        _ => -1,
+    };
 
     private static bool IsMostlyPrintable(string text)
     {
