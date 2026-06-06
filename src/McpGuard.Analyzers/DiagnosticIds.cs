@@ -41,4 +41,7 @@ internal static class DiagnosticIds
 
     /// <summary>An encoded (base64/hex) payload blob in a description. Info-level.</summary>
     public const string EncodedBlobInDescription = "MCPG011";
+
+    /// <summary>Escalation: a confirmed exfiltration payload (secret reference + external sink). Error-level.</summary>
+    public const string ConfirmedExfiltrationInDescription = "MCPG012";
 }

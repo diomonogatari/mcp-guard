@@ -32,8 +32,20 @@ public sealed class McpToolDescriptionAnalyzer : DiagnosticAnalyzer
             new EncodedBlobRule(),
             new CapabilityMismatchRule());
 
+    // Escalation: a secret reference (MCPG003) plus an external sink (MCPG004) on the same description
+    // is no longer a heuristic — it is a working exfiltration payload, reported at Error.
+    private static readonly DiagnosticDescriptor ConfirmedExfiltration = new(
+        id: DiagnosticIds.ConfirmedExfiltrationInDescription,
+        title: "MCP tool description is a confirmed data-exfiltration payload",
+        messageFormat: "MCP tool description both references a secret and routes data to an external destination; this is a confirmed data-exfiltration payload and must be removed",
+        category: RuleMetadata.SecurityCategory,
+        defaultSeverity: DiagnosticSeverity.Error,
+        isEnabledByDefault: true,
+        description: "When a single description triggers both MCPG003 (a secret-file reference) and MCPG004 (an external sink), the combination is a working data-exfiltration payload, not a heuristic. mcp-guard escalates it to an error.",
+        helpLinkUri: RuleMetadata.HelpUri(DiagnosticIds.ConfirmedExfiltrationInDescription));
+
     private static readonly ImmutableArray<DiagnosticDescriptor> Descriptors =
-        RuleSet.Select(static rule => rule.Descriptor).ToImmutableArray();
+        RuleSet.Select(static rule => rule.Descriptor).Append(ConfirmedExfiltration).ToImmutableArray();
 
     // Member-level MCP attributes whose [Description] (and Name) the model reads.
     private static readonly ImmutableHashSet<string> McpMemberAttributeNames =
@@ -92,6 +104,12 @@ public sealed class McpToolDescriptionAnalyzer : DiagnosticAnalyzer
         foreach (McpDescriptionRule rule in RuleSet)
         {
             rule.Analyze(in description, context);
+        }
+
+        // Multi-signal escalation: a secret reference plus an external sink is a confirmed payload.
+        if (SecretArtifacts.TryFind(description.Text, out _) && ExfiltrationCues.TryFindSink(description.Text, out _))
+        {
+            context.ReportDiagnostic(Diagnostic.Create(ConfirmedExfiltration, description.Location));
         }
     }
 

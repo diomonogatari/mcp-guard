@@ -21,11 +21,21 @@ types — and flags prompt-injection / tool-poisoning patterns as IDE squiggles 
 | [`MCPG002`](docs/rules/MCPG002.md) | Hidden / non-printable Unicode (zero-width, bidi, BOM, tag chars) | Warning |
 | [`MCPG003`](docs/rules/MCPG003.md) | A sensitive credential / secret-file reference (`~/.ssh/id_rsa`, `.aws/credentials`, …) | Warning |
 | [`MCPG004`](docs/rules/MCPG004.md) | A data-exfiltration directive (transmit verb + external destination + sensitive/covert cue) | Warning |
+| [`MCPG005`](docs/rules/MCPG005.md) | An ANSI / terminal escape sequence (`U+001B`) | Warning |
+| [`MCPG006`](docs/rules/MCPG006.md) | Manipulative / authority phrasing (coercion, suppressing other tools) | Warning |
+| [`MCPG007`](docs/rules/MCPG007.md) | A benign tool name whose description claims a dangerous capability | Info |
+| [`MCPG008`](docs/rules/MCPG008.md) | Embedded instruction markup (HTML comments, fake system tags) | Warning |
+| [`MCPG009`](docs/rules/MCPG009.md) | Cross-tool / tool-shadowing references (influencing other tools) | Warning |
+| [`MCPG010`](docs/rules/MCPG010.md) | Off-screen whitespace padding (a long run of spaces/tabs) | Warning |
+| [`MCPG011`](docs/rules/MCPG011.md) | An encoded (base64/hex) payload blob | Info |
+| [`MCPG012`](docs/rules/MCPG012.md) | **Confirmed exfiltration payload** — a secret reference **and** an external sink together | **Error** |
 
 Precision is the priority: mcp-guard only inspects descriptions on the **MCP tool surface**
-(`[McpServerTool]` methods, their parameters, and `[McpServerToolType]` types), so ordinary
-`[Description]` usage never false-positives. The [roadmap](docs/ROADMAP.md) tracks the rules still to
-come on the path to 1.0.
+(`[McpServerTool]` / `[McpServerPrompt]` / `[McpServerResource]` members, their parameters, and the
+matching `[McpServer*Type]` types), so ordinary `[Description]` usage never false-positives. Most rules
+are individually high-confidence heuristics; [`MCPG012`](docs/rules/MCPG012.md) escalates the
+co-occurrence of two of them to a build-breaking error. The [roadmap](docs/ROADMAP.md) tracks the
+remaining work on the path to 1.0.
 
 ## Install
 

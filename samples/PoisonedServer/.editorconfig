@@ -1,0 +1,5 @@
+# The poisoned sample's ReadFile description trips the MCPG012 escalation (Error) on purpose — it both
+# references ~/.ssh/id_rsa and uploads it to an external URL. Demote it to a warning *here only* so the
+# fixture still builds; real consumers keep the build-breaking Error.
+[*.cs]
+dotnet_diagnostic.MCPG012.severity = warning
