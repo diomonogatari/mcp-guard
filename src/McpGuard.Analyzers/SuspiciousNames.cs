@@ -30,12 +30,22 @@ internal static class SuspiciousNames
     public static bool TryFindSecretDirective(string identifier, out string artifact)
     {
         artifact = string.Empty;
-        if (string.IsNullOrEmpty(identifier) || !SecretArtifacts.TryFind(identifier, out artifact))
+        if (string.IsNullOrEmpty(identifier))
         {
             return false;
         }
 
-        foreach (string word in Tokenize(identifier))
+        // Check the raw identifier (snake_case: id_rsa) and an underscore-joined tokenized form, so a
+        // camelCase name (contentFromReadingIdRsa -> "...id_rsa") — the conventional C# casing — is also
+        // covered for the underscore-style artifacts (id_rsa, id_ed25519, ...).
+        var words = new List<string>(Tokenize(identifier));
+        if (!SecretArtifacts.TryFind(identifier, out artifact)
+            && !SecretArtifacts.TryFind(string.Join("_", words), out artifact))
+        {
+            return false;
+        }
+
+        foreach (string word in words)
         {
             foreach (string verb in AccessVerbs)
             {
